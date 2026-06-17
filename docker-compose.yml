@@ -1,0 +1,29 @@
+services:
+  vittal-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vittal-agent:latest
+    pull_policy: build
+    container_name: vittal-agent-runner
+    restart: unless-stopped
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    environment:
+      - AGENT_SLUG=clinica-bela-pele
+      - AGENT_CHANNEL=whatsapp
+    # Or load env file dynamically if specified
+    # env_file:
+    #   - ./agents/clinica-bela-pele/whatsapp/.env
+    networks:
+      - dokploy-network
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  dokploy-network:
+    external: true

@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "name": "Clinica Bela Pele",
+  "slug": "clinica-bela-pele",
+  "level": "informational",
+  "capabilities": [
+    "faq",
+    "lead_qualification",
+    "handoff"
+  ],
+  "plugins": [
+    {
+      "id": "builtin.handoff",
+      "config": {},
+      "requiredEnv": [
+        "HANDOFF_ATTENDANTS"
+      ]
+    }
+  ],
+  "publisher": {
+    "transport": "rabbitmq",
+    "envelope": "uazapi",
+    "source": "clinica-bela-pele",
+    "requiredEnv": []
+  },
+  "prompts": {
+    "main": "prompts/system.md"
+  },
+  "knowledge": {
+    "path": "knowledge"
+  },
+  "notes": [
+    "Manifest é a fonte de verdade para level/capabilities/plugins/publisher.",
+    "Níveis: informational | transactional | orchestrator"
+  ]
+}
