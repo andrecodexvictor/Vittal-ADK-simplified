@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import dotenv from 'dotenv'
 
-// 1. Parse command-line arguments (e.g. bun run-agent --agent clinica-bela-pele --channel whatsapp)
+// 1. Parse command-line arguments (e.g. bun run-agent --agent aprovauto-ai --channel whatsapp)
 const args: Record<string, string> = {}
 for (let i = 0; i < process.argv.length; i++) {
   const arg = process.argv[i]

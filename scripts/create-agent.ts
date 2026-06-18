@@ -9,8 +9,8 @@ const channel = process.argv[4]?.trim() || 'whatsapp'
 if (!rawName) {
   console.error('\nUso: bun run create-agent "Nome do Cliente" ["Descricao opcional"] ["canal_opcional"]\n')
   console.error('Exemplos:')
-  console.error('  bun run create-agent "Clinica Bela Pele"')
-  console.error('  bun run create-agent "Clinica Bela Pele" "Agente de agendamento" "whatsapp"\n')
+  console.error('  bun run create-agent "Nome da Empresa"')
+  console.error('  bun run create-agent "Nome da Empresa" "Agente de atendimento" "whatsapp"\n')
   process.exit(1)
 }
 
@@ -48,7 +48,7 @@ if (!hubApiKey) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${hubApiKey}`,
+        'X-API-Key': `${hubApiKey}`,
       },
       body: JSON.stringify({
         slug: `${slug}-${channel}`,

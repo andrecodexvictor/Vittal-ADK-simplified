@@ -1,11 +1,13 @@
 {
   "version": "1.0.0",
-  "name": "Clinica Bela Pele",
-  "slug": "clinica-bela-pele",
-  "level": "informational",
+  "name": "AprovaAuto AI",
+  "slug": "aprovauto-ai",
+  "level": "transactional",
   "capabilities": [
     "faq",
+    "rag",
     "lead_qualification",
+    "crm_update",
     "handoff"
   ],
   "plugins": [
@@ -15,12 +17,23 @@
       "requiredEnv": [
         "HANDOFF_ATTENDANTS"
       ]
+    },
+    {
+      "id": "custom.sga",
+      "config": {
+        "contract": "spec/sga.openapi.json",
+        "auth": "bearer"
+      },
+      "requiredEnv": [
+        "SGA_BASE_URL",
+        "SGA_API_TOKEN"
+      ]
     }
   ],
   "publisher": {
     "transport": "rabbitmq",
     "envelope": "uazapi",
-    "source": "clinica-bela-pele",
+    "source": "aprovauto-ai",
     "requiredEnv": []
   },
   "prompts": {
@@ -31,6 +44,7 @@
   },
   "notes": [
     "Manifest é a fonte de verdade para level/capabilities/plugins/publisher.",
-    "Níveis: informational | transactional | orchestrator"
+    "Níveis: informational | transactional | orchestrator",
+    "Use transactional para ferramentas que realizam side-effects."
   ]
 }

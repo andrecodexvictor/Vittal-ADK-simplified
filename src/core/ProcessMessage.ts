@@ -1,3 +1,5 @@
+import { join } from 'node:path'
+import fs from 'node:fs/promises'
 import { config } from './config'
 import { logger } from './logger'
 import { RestConversationRepository } from '../services/RestConversationRepository'
@@ -22,6 +24,48 @@ export interface IncomingMessageDTO {
   audioBuffer?: Buffer
   audioMediaKey?: string
   imageUrl?: string
+  imageMimeType?: string
+}
+
+export function normalizePhoneIdentifier(value: string): string {
+  return (value.split('@')[0] ?? value).replace(/\D/g, '')
+}
+
+export function getPhoneWhitelistKeys(value: string): string[] {
+  const phone = normalizePhoneIdentifier(value)
+  if (!phone) return []
+
+  const keys = new Set([phone])
+  const addBrazilMobileVariants = (countryPrefixLength: number) => {
+    const areaCodeLength = 2
+    const mobilePrefixIndex = countryPrefixLength + areaCodeLength
+    const subscriber = phone.slice(mobilePrefixIndex)
+
+    if (subscriber.length === 8 && subscriber.startsWith('9')) {
+      keys.add(`${phone.slice(0, mobilePrefixIndex)}9${subscriber}`)
+    }
+
+    if (subscriber.length === 9 && subscriber.startsWith('9')) {
+      keys.add(`${phone.slice(0, mobilePrefixIndex)}${subscriber.slice(1)}`)
+    }
+  }
+
+  if (phone.startsWith('55')) {
+    addBrazilMobileVariants(2)
+  } else {
+    addBrazilMobileVariants(0)
+  }
+
+  return [...keys]
+}
+
+export function buildPhoneWhitelistSet(value: string): Set<string> {
+  return new Set(
+    value
+      .split(',')
+      .flatMap((phone) => getPhoneWhitelistKeys(phone.trim()))
+      .filter(Boolean),
+  )
 }
 
 export class ProcessMessage {
@@ -93,10 +137,11 @@ export class ProcessMessage {
 
     const publisher = new RabbitMQPublisher(this.manifest.slug, this.manifest.publisher?.envelope)
     let stepIndex = 0
+    const senderPhone = normalizePhoneIdentifier(dto.senderPhone)
 
     log.info(
       {
-        sender: dto.senderPhone,
+        sender: senderPhone,
         instanceName: dto.instanceName,
         isGroup: dto.isGroup,
         mediaType: dto.mediaType ?? 'text',
@@ -131,7 +176,7 @@ export class ProcessMessage {
 
       const audioRecipient = dto.isGroup
         ? dto.chatId.split('@')[0] ?? dto.chatId
-        : dto.senderPhone.split('@')[0] ?? dto.senderPhone
+        : senderPhone
 
       let decryptedBuffer: Buffer
       try {
@@ -183,28 +228,11 @@ export class ProcessMessage {
       dto.text = `[Áudio]: ${dto.text}`
     }
 
-    // 3. Resolve conversation in Vittal Hub
-    const conversation = await this.repository.resolve(
-      dto.sender,
-      'whatsapp',
-      dto.contactName,
-    )
-
-    // 4. Verify pause state (Human Handoff)
-    const state = await this.repository.getAgentState(conversation.id)
-    if (state.isPaused()) {
-      log.info({ conversationId: conversation.id }, 'Agent is paused (human handoff active) — skipping message')
-      await publisher.close()
-      return
-    }
-
-    const senderPhone = dto.senderPhone.split('@')[0] ?? dto.senderPhone
-
-    // 5. Whitelist validations
-    const allowedNumbers = config.whitelistNumbers.split(',').filter(Boolean).map((n) => n.trim())
+    // 3. Whitelist validations
+    const allowedNumbers = buildPhoneWhitelistSet(config.whitelistNumbers)
     const allowedGroups = config.whitelistGroups.split(',').filter(Boolean).map((g) => g.trim())
 
-    if (allowedNumbers.length > 0 && !allowedNumbers.includes(senderPhone)) {
+    if (allowedNumbers.size > 0 && !allowedNumbers.has(senderPhone)) {
       log.info({ senderPhone }, 'Sender not in whitelist — ignoring')
       await publisher.close()
       return
@@ -224,6 +252,21 @@ export class ProcessMessage {
           return
         }
       }
+    }
+
+    // 4. Resolve conversation in Vittal Hub
+    const conversation = await this.repository.resolve(
+      senderPhone,
+      'whatsapp',
+      dto.contactName,
+    )
+
+    // 5. Verify pause state (Human Handoff)
+    const state = await this.repository.getAgentState(conversation.id)
+    if (state.isPaused()) {
+      log.info({ conversationId: conversation.id }, 'Agent is paused (human handoff active) — skipping message')
+      await publisher.close()
+      return
     }
 
     // 6. Trigger word validation
@@ -263,7 +306,7 @@ export class ProcessMessage {
       const historyWithoutLast = history.filter((m) => m.content !== dto.text || m.role !== 'user')
 
       // Load base prompt from templates
-      const promptFile = join(config.AGENT_DIR || '', this.manifest.prompts.main)
+      const promptFile = join(process.env.AGENT_DIR || '', this.manifest.prompts.main)
       const baseSystemPrompt = await fs.readFile(promptFile, 'utf-8').catch((err) => {
         logger.error({ err, path: promptFile }, 'Failed to read agent prompt.md file')
         return 'Você é um assistente prestativo.'

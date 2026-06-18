@@ -32,6 +32,15 @@ Este documento detalha todas as variáveis de ambiente e flags de comportamento 
 - **`UAZAPI_TOKEN`**: Token da instância ativa no WhatsApp.
 - **`UAZAPI_BASE_URL`**: URL para envio direto de mídia HTTP (exigida para imagens, botões e listas).
 
+### 6. SGA / AprovaAuto
+- **`SGA_BASE_URL`**: URL base da API SGA.
+- **`SGA_API_TOKEN`**: Token Bearer enviado no cabeçalho `Authorization`.
+- **`SGA_TIMEOUT_MS`**: Timeout por chamada ao SGA (padrão: `10000`).
+- **`SGA_CIRCUIT_FAILURE_THRESHOLD`**: Número de falhas para abrir o circuit breaker (padrão: `3`).
+- **`SGA_CIRCUIT_WINDOW_MS`**: Janela de contagem de falhas do circuit breaker (padrão: `60000`).
+- **`SGA_CIRCUIT_OPEN_MS`**: Tempo de bloqueio enquanto o circuit breaker estiver aberto (padrão: `120000`).
+- **`SGA_MAX_UPLOAD_BYTES`**: Tamanho máximo de documento enviado ao SGA (padrão: `10485760`).
+
 ---
 
 ## ⚙️ Feature Flags (Ativação de Comportamento)

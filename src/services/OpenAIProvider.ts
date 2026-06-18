@@ -90,7 +90,7 @@ export class OpenAIProvider {
 
     const response = await this.client.chat.completions.create({
       model: config.openaiModel,
-      max_tokens: config.openaiMaxTokens,
+      max_completion_tokens: config.openaiMaxTokens,
       temperature: config.openaiTemperature,
       top_p: config.openaiTopP,
       messages,
@@ -155,7 +155,7 @@ export class OpenAIProvider {
     for (let iteration = 0; iteration < maxIterations; iteration++) {
       const response = await this.client.chat.completions.create({
         model: config.openaiModel,
-        max_tokens: config.openaiMaxTokens,
+        max_completion_tokens: config.openaiMaxTokens,
         temperature: config.openaiTemperature,
         top_p: config.openaiTopP,
         messages,

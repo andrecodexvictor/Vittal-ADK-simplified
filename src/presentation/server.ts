@@ -3,7 +3,7 @@ import { timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
 import { config } from '../core/config'
 import { logger } from '../core/logger'
-import { ProcessMessage } from '../core/ProcessMessage'
+import type { ProcessMessage } from '../core/ProcessMessage'
 
 // 1. Zod schemas for UAZAPI webhook validation
 export const WebhookPayloadSchema = z.object({
@@ -214,6 +214,7 @@ export function createServer(processMessage: ProcessMessage): Hono {
             contactName: msg.senderName,
             mediaType: 'image',
             imageUrl: `data:${contentType};base64,${base64}`,
+            imageMimeType: contentType,
           }).catch((err) => logger.error({ err }, 'Error processing image message'))
         })
         .catch((err) => logger.error({ err, messageId: msg.id }, 'Failed to download WhatsApp image'))

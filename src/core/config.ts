@@ -29,6 +29,15 @@ const configSchema = z.object({
   uazapiToken: z.string().min(1, 'UAZAPI_TOKEN is required'),
   uazapiBaseUrl: z.string().default(''), // for direct media sending
 
+  // SGA
+  sgaBaseUrl: z.string().url().default('https://sga.aprovauto.local'),
+  sgaApiToken: z.string().default(''),
+  sgaTimeoutMs: z.coerce.number().default(10_000),
+  sgaCircuitFailureThreshold: z.coerce.number().default(3),
+  sgaCircuitWindowMs: z.coerce.number().default(60_000),
+  sgaCircuitOpenMs: z.coerce.number().default(120_000),
+  sgaMaxUploadBytes: z.coerce.number().default(10 * 1024 * 1024),
+
   // CRM (Optional)
   crmApiId: z.string().default(''),
   crmBearerToken: z.string().default(''),
@@ -67,6 +76,7 @@ const configSchema = z.object({
   debounceMs: z.coerce.number().default(3000),
   port: z.coerce.number().default(3000),
   logLevel: z.string().default('info'),
+  logPretty: z.preprocess((val) => val === 'true', z.boolean().default(false)),
 })
 
 function loadConfig() {
@@ -89,6 +99,13 @@ function loadConfig() {
     uazapiUrl: process.env.UAZAPI_URL,
     uazapiToken: process.env.UAZAPI_TOKEN,
     uazapiBaseUrl: process.env.UAZAPI_BASE_URL,
+    sgaBaseUrl: process.env.SGA_BASE_URL,
+    sgaApiToken: process.env.SGA_API_TOKEN,
+    sgaTimeoutMs: process.env.SGA_TIMEOUT_MS,
+    sgaCircuitFailureThreshold: process.env.SGA_CIRCUIT_FAILURE_THRESHOLD,
+    sgaCircuitWindowMs: process.env.SGA_CIRCUIT_WINDOW_MS,
+    sgaCircuitOpenMs: process.env.SGA_CIRCUIT_OPEN_MS,
+    sgaMaxUploadBytes: process.env.SGA_MAX_UPLOAD_BYTES,
     crmApiId: process.env.CRM_API_ID,
     crmBearerToken: process.env.CRM_BEARER_TOKEN,
     featureResponderGrupos: process.env.FEATURE_RESPONDER_GRUPOS,
@@ -116,6 +133,7 @@ function loadConfig() {
     debounceMs: process.env.DEBOUNCE_MS,
     port: process.env.PORT,
     logLevel: process.env.LOG_LEVEL,
+    logPretty: process.env.LOG_PRETTY,
   }
 
   const result = configSchema.safeParse(raw)
@@ -141,6 +159,13 @@ function loadConfig() {
         uazapiUrl: 'https://flowcrm.uazapi.com',
         uazapiToken: 'test-uazapi-token',
         uazapiBaseUrl: '',
+        sgaBaseUrl: 'https://sga.test.local',
+        sgaApiToken: 'test-sga-token',
+        sgaTimeoutMs: 10000,
+        sgaCircuitFailureThreshold: 3,
+        sgaCircuitWindowMs: 60000,
+        sgaCircuitOpenMs: 120000,
+        sgaMaxUploadBytes: 10 * 1024 * 1024,
         crmApiId: '',
         crmBearerToken: '',
         featureResponderGrupos: false,
@@ -168,6 +193,7 @@ function loadConfig() {
         debounceMs: 3000,
         port: 3000,
         logLevel: 'info',
+        logPretty: false,
       }
     }
     const errors = result.error.issues.map((e) => `  ${e.path.join('.')}: ${e.message}`).join('\n')

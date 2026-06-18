@@ -18,15 +18,15 @@ Certifique-se de ter o [Bun](https://bun.sh) instalado. No terminal, execute:
 bun install
 ```
 
-### 2. Configurar o Protótipo (`Clinica Bela Pele`)
+### 2. Configurar o Agente (`AprovaAuto AI`)
 
 Vá até a pasta do protótipo e crie o arquivo `.env`:
 
 ```bash
-cp agents/clinica-bela-pele/whatsapp/.env.example agents/clinica-bela-pele/whatsapp/.env
+cp agents/aprovauto-ai/whatsapp/.env.example agents/aprovauto-ai/whatsapp/.env
 ```
 
-Abra o arquivo `agents/clinica-bela-pele/whatsapp/.env` e insira suas credenciais (por exemplo, `OPENAI_API_KEY`, `WEBHOOK_SECRET` e `UAZAPI_TOKEN`).
+Abra o arquivo `agents/aprovauto-ai/whatsapp/.env` e insira suas credenciais (`OPENAI_API_KEY`, `WEBHOOK_SECRET`, `UAZAPI_TOKEN`, `SGA_BASE_URL` e `SGA_API_TOKEN`).
 
 ### 3. Rodar os Testes Offline
 
@@ -36,18 +36,18 @@ Todos os testes de agentes são escritos em TypeScript puro e rodam em menos de 
 bun test
 ```
 
-Para rodar apenas os testes do protótipo:
+Para rodar apenas os testes do AprovaAuto:
 
 ```bash
-bun test agents/clinica-bela-pele/whatsapp/tests
+bun test agents/aprovauto-ai/whatsapp/tests
 ```
 
 ### 4. Iniciar o Agente Localmente
 
-Para subir o servidor HTTP local apontando para o protótipo:
+Para subir o servidor HTTP local apontando para o AprovaAuto:
 
 ```bash
-bun dev --agent clinica-bela-pele
+bun dev --agent aprovauto-ai
 ```
 
 O servidor subirá na porta `3000`.
@@ -79,7 +79,7 @@ Para receber os webhooks do WhatsApp em sua máquina de desenvolvimento local:
 
 1. Suba o agente localmente:
    ```bash
-   bun dev --agent nome-do-agente
+   bun dev --agent aprovauto-ai
    ```
 2. Abra outro terminal e crie um túnel Cloudflare apontando para a porta 3000:
    ```bash

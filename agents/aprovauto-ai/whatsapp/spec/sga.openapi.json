@@ -1,0 +1,491 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Hinova SGA API v2 — AprovaAuto AI Contract",
+    "version": "2.0.0",
+    "description": "Subset of Hinova SGA API v2 endpoints used by the AprovaAuto AI WhatsApp agent. Source: https://api.hinova.com.br/api/sga/v2/doc/ — scraped 2026-06-18."
+  },
+  "servers": [
+    {
+      "url": "{SGA_BASE_URL}",
+      "variables": {
+        "SGA_BASE_URL": {
+          "default": "https://api.hinova.com.br/api/sga/v2"
+        }
+      }
+    }
+  ],
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/usuario/autenticar": {
+      "post": {
+        "summary": "Authenticate integration user — returns token_usuario",
+        "description": "Two-step auth: the static SGA_API_TOKEN goes in the Authorization header; the returned token_usuario is cached and used for all other calls. token_usuario does not expire.",
+        "security": [{ "staticApiToken": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["usuario", "senha"],
+                "properties": {
+                  "usuario": { "type": "string", "description": "Active SGA system username" },
+                  "senha": { "type": "string", "description": "SGA user password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string", "example": "OK" },
+                    "token_usuario": { "type": "string", "description": "Session token — does not expire" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/veiculo/buscar/{placaOuChassi}/{buscar_por}": {
+      "get": {
+        "summary": "Search vehicle by plate, chassis or internal ID",
+        "operationId": "tool_sga_search_vehicle_plate",
+        "parameters": [
+          {
+            "name": "placaOuChassi",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "License plate (e.g. ABC1234) or chassis number"
+          },
+          {
+            "name": "buscar_por",
+            "in": "path",
+            "required": false,
+            "schema": { "type": "string", "enum": ["placa", "chassi", "codigo"] },
+            "description": "Search mode. Defaults to plate search if omitted."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vehicle found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Vehicle" }
+                }
+              }
+            }
+          },
+          "406": { "description": "Vehicle not found" }
+        }
+      }
+    },
+    "/modelo/listar": {
+      "post": {
+        "summary": "List vehicle models registered in SGA (use for model-name search)",
+        "operationId": "tool_sga_list_models",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["situacao"],
+                "properties": {
+                  "situacao": { "type": "string", "enum": ["ativo", "inativo", "todos"] },
+                  "inicio_paginacao": { "type": "integer", "default": 0 },
+                  "quantidade_por_pagina": { "type": "integer", "default": 50, "maximum": 200 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of vehicle models",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "codigo_modelo": { "type": "string" },
+                      "descricao_modelo": { "type": "string" },
+                      "codigo_marca": { "type": "string" },
+                      "descricao_marca": { "type": "string" },
+                      "codigo_tipo_veiculo": { "type": "string" },
+                      "descricao_tipo_veiculo": { "type": "string" },
+                      "situacao": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buscar/situacao-financeira-veiculo/{codigo_ou_placa}": {
+      "get": {
+        "summary": "Get vehicle financial status (ADIMPLENTE/INADIMPLENTE)",
+        "parameters": [
+          {
+            "name": "codigo_ou_placa",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Vehicle plate or internal code"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cpf": { "type": "string" },
+                    "nome": { "type": "string" },
+                    "codigo_veiculo": { "type": "string" },
+                    "placa": { "type": "string" },
+                    "descricao_modelo": { "type": "string" },
+                    "descricao_situacao_veiculo": { "type": "string" },
+                    "situacao_financeira": { "type": "string", "enum": ["ADIMPLENTE", "INADIMPLENTE"] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buscar/rateio-medio": {
+      "post": {
+        "summary": "Simulate monthly protection quote (rateio médio)",
+        "operationId": "tool_sga_simulate_quote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["valor_fipe", "codigo_regional", "codigo_tipo_veiculo"],
+                "properties": {
+                  "valor_fipe": { "type": "number", "description": "FIPE market value in BRL" },
+                  "codigo_regional": { "type": "integer" },
+                  "codigo_tipo_veiculo": { "type": "string" },
+                  "quantidade_meses_media": { "type": "integer", "default": 3 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "valor_rateio_medio": { "type": "string", "example": "R$ 189,50" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listar/boleto/periodo": {
+      "post": {
+        "summary": "List financial invoices (boleto/Pix) by CPF",
+        "operationId": "tool_sga_get_financial_invoice",
+        "description": "LGPD: after receiving response, cross-validate response[].veiculos[].placa against user-provided plate. Only expose financial fields if match found.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cpf_associado": { "type": "string", "description": "Member CPF — 11 digits, no punctuation" },
+                  "codigo_situacao_boleto": { "type": "integer", "description": "2 = ABERTO (open)" },
+                  "data_vencimento_inicial": { "type": "string", "pattern": "dd/mm/yyyy" },
+                  "data_vencimento_final": { "type": "string", "pattern": "dd/mm/yyyy" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Boleto" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cadastrar/historico-atendimento-associado": {
+      "post": {
+        "summary": "Create claim / service record (sinistro)",
+        "operationId": "tool_sga_create_claim",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cpf", "codigo_status_atendimento", "codigo_tipo_atendimento", "codigo_departamento", "titulo", "descricao"],
+                "properties": {
+                  "cpf": { "type": "string" },
+                  "codigo_status_atendimento": { "type": "integer", "description": "From env SGA_CLAIM_STATUS_CODE" },
+                  "codigo_tipo_atendimento": { "type": "integer", "description": "From env SGA_CLAIM_TYPE_CODE" },
+                  "codigo_departamento": { "type": "integer", "description": "From env SGA_SINISTRO_DEPT_CODE" },
+                  "titulo": { "type": "string" },
+                  "descricao": { "type": "string", "description": "Full event description with date, time, location, third-party info" },
+                  "placa": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "codigo_historico_atendimento": { "type": "string", "description": "claimId for document uploads" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/historico-atendimento-associado/foto/cadastrar": {
+      "post": {
+        "summary": "Upload document/photo to an existing claim",
+        "operationId": "tool_sga_upload_claim_document",
+        "description": "Accepts link (public URL from WhatsApp CDN) or binario (base64). Formats: .png, .jpeg, .jpg, .pdf. Max 50 files per request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["codigo_atendimento", "foto"],
+                "properties": {
+                  "codigo_atendimento": { "type": "integer", "description": "claimId from create claim response" },
+                  "foto": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "items": {
+                      "type": "object",
+                      "required": ["nome_arquivo"],
+                      "properties": {
+                        "nome_arquivo": { "type": "string" },
+                        "link": { "type": "string", "description": "Public URL of the file" },
+                        "binario": { "type": "string", "description": "Base64 encoded binary" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "nome_arquivo": { "type": "string" },
+                      "situacao": { "type": "string", "enum": ["Inserido", "Erro"] }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listar/evento-veiculo/{placa_ou_codigo}": {
+      "get": {
+        "summary": "Get all claims/events for a vehicle by plate",
+        "operationId": "tool_sga_get_claim_status_plate",
+        "parameters": [
+          {
+            "name": "placa_ou_codigo",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "eventos": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Evento" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listar/evento": {
+      "post": {
+        "summary": "Get claim/event detail by protocol number",
+        "operationId": "tool_sga_get_claim_status_protocol",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "protocolo": { "type": "string", "description": "Event protocol number (claimId)" },
+                  "data_cadastro": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Evento" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "token_usuario returned by /usuario/autenticar. Does not expire. Cache at module level."
+      },
+      "staticApiToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Static SGA_API_TOKEN from env — only used for /usuario/autenticar"
+      }
+    },
+    "schemas": {
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "codigo_veiculo": { "type": "string" },
+          "placa": { "type": "string" },
+          "chassi": { "type": "string" },
+          "codigo_fipe": { "type": "string" },
+          "valor_fipe": { "type": "string" },
+          "valor_fixo": { "type": "string" },
+          "ano_fabricacao": { "type": "string" },
+          "ano_modelo": { "type": "string" },
+          "codigo_modelo": { "type": "string" },
+          "modelo": { "type": "string" },
+          "marca": { "type": "string" },
+          "tipo": { "type": "string" },
+          "categoria": { "type": "string" },
+          "codigo_associado": { "type": "string" },
+          "cpf": { "type": "string" },
+          "nome": { "type": "string" },
+          "codigo_situacao": { "type": "string" },
+          "descricao_situacao": { "type": "string" },
+          "codigo_regional": { "type": "string" },
+          "codigo_tipo_veiculo": { "type": "string" }
+        }
+      },
+      "Boleto": {
+        "type": "object",
+        "properties": {
+          "nosso_numero": { "type": "integer" },
+          "data_vencimento": { "type": "string" },
+          "valor_boleto": { "type": "string" },
+          "situacao_boleto": { "type": "string" },
+          "linha_digitavel": { "type": "string" },
+          "link_boleto": { "type": "string" },
+          "pix": {
+            "type": "object",
+            "properties": {
+              "qrcode": { "type": "string", "description": "Base64 QR code image" },
+              "copia_cola": { "type": "string", "description": "Pix copy-and-paste string" }
+            }
+          },
+          "veiculos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "placa": { "type": "string" },
+                "modelo": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "Evento": {
+        "type": "object",
+        "properties": {
+          "codigo_evento": { "type": "string" },
+          "protocolo": { "type": "string" },
+          "codigo_associado": { "type": "string" },
+          "nome_associado": { "type": "string" },
+          "placa": { "type": "string" },
+          "data_evento": { "type": "string" },
+          "hora_evento": { "type": "string" },
+          "envolvimento_terceiros": { "type": "string", "enum": ["S", "N"] },
+          "valor_reparo": { "type": "number" },
+          "codigo_situacao_evento": { "type": "string" },
+          "situacao_evento": { "type": "string" },
+          "descricao_evento_area": { "type": "string" },
+          "descricao_motivo": { "type": "string" }
+        }
+      }
+    }
+  }
+}

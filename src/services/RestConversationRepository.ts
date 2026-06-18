@@ -28,6 +28,7 @@ export interface Conversation {
   contactName?: string
   channel: string
   status: string
+  metadata?: Record<string, unknown>
 }
 
 export interface Execution {
@@ -100,18 +101,30 @@ export class RestConversationRepository {
     channel: string,
     contactName?: string,
   ): Promise<Conversation> {
-    const data = await this.request<any>(
-      'POST',
-      '/api/ai-hub/conversations/resolve',
-      { contact_identifier: contactIdentifier, channel, contact_name: contactName },
-    )
-    return {
-      id: String(data.id ?? ''),
-      agentId: String(data.agent_id ?? ''),
-      contactIdentifier,
-      contactName,
-      channel,
-      status: String(data.status ?? 'active'),
+    try {
+      const data = await this.request<any>(
+        'POST',
+        '/api/ai-hub/conversations/resolve',
+        { contact_identifier: contactIdentifier, channel, contact_name: contactName },
+      )
+      return {
+        id: String(data.id ?? ''),
+        agentId: String(data.agent_id ?? ''),
+        contactIdentifier,
+        contactName,
+        channel,
+        status: String(data.status ?? 'active'),
+      }
+    } catch (err) {
+      logger.warn({ err, contactIdentifier, channel }, 'Hub resolve failed; using local fallback conversation')
+      return {
+        id: `local-${channel}-${contactIdentifier.replace(/[^a-zA-Z0-9_-]/g, '-')}`,
+        agentId: 'local-agent',
+        contactIdentifier,
+        contactName,
+        channel,
+        status: 'active',
+      }
     }
   }
 
@@ -290,6 +303,33 @@ export class RestConversationRepository {
       })
     } catch (err) {
       logger.error({ err, conversationId }, 'Failed to set agent state')
+    }
+  }
+
+  async getConversationMetadata(conversationId: string): Promise<Record<string, unknown>> {
+    try {
+      const data = await this.request<{ data?: { metadata?: Record<string, unknown> }; metadata?: Record<string, unknown> }>(
+        'GET',
+        `/api/ai-hub/conversations/${conversationId}`,
+      )
+      return data.data?.metadata ?? data.metadata ?? {}
+    } catch (err) {
+      logger.warn({ err, conversationId }, 'Failed to get conversation metadata')
+      return {}
+    }
+  }
+
+  async mergeConversationMetadata(conversationId: string, metadataPatch: Record<string, unknown>): Promise<void> {
+    const current = await this.getConversationMetadata(conversationId)
+    try {
+      await this.request('PATCH', `/api/ai-hub/conversations/${conversationId}`, {
+        metadata: {
+          ...current,
+          ...metadataPatch,
+        },
+      })
+    } catch (err) {
+      logger.error({ err, conversationId }, 'Failed to merge conversation metadata')
     }
   }
 }
