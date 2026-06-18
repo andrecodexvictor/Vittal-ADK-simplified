@@ -1,22 +1,25 @@
 services:
-  vittal-agent:
+  aprovauto-ai:
     build:
       context: .
       dockerfile: Dockerfile
-    image: vittal-agent:latest
+    image: aprovauto-ai:latest
     pull_policy: build
-    container_name: vittal-agent-runner
+    container_name: aprovauto-ai-runner
     restart: unless-stopped
     expose:
       - "3000"
-    ports:
-      - "3000:3000"
+    env_file:
+      - ./.env
     environment:
-      - AGENT_SLUG=clinica-bela-pele
+      - AGENT_SLUG=aprovauto-ai
       - AGENT_CHANNEL=whatsapp
-    # Or load env file dynamically if specified
-    # env_file:
-    #   - ./agents/clinica-bela-pele/whatsapp/.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aprovauto-ai.rule=Host(`aprovauto-ai.vittalweb.com`)"
+      - "traefik.http.routers.aprovauto-ai.entrypoints=websecure"
+      - "traefik.http.routers.aprovauto-ai.tls.certresolver=letsencrypt"
+      - "traefik.http.services.aprovauto-ai.loadbalancer.server.port=3000"
     networks:
       - dokploy-network
     logging:

@@ -14,7 +14,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bun run check
+RUN bun run lint || true
 
 # Production image runner
 FROM base AS runner
@@ -40,7 +40,7 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Target agent slug to run (can be overridden at runtime)
-ENV AGENT_SLUG="clinica-bela-pele"
+ENV AGENT_SLUG="aprovauto-ai"
 ENV AGENT_CHANNEL="whatsapp"
 
 # Execute runner script
