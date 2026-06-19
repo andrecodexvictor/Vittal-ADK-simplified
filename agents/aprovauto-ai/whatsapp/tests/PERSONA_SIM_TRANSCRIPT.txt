@@ -1,0 +1,140 @@
+
+━━━ [P1] Criança falando
+esperado: Paciência; não expõe dados; orienta a falar com o adulto titular; tom gentil e humano.
+USER> oi vc é um robô?? meu pai mandou eu falar aqui do carro dele
+BOT > Oi! Eu sou a assistente da AprovaAuto.
+
+Como você falou que é pelo carro do seu pai, preciso que ele me envie os dados ou fale comigo diretamente, tudo bem?
+USER> ele bateu o carro acho, ficou bravo e foi pro trabalho
+BOT > Entendi. Se foi uma batida, eu consigo te ajudar a abrir o sinistro.
+
+Como você não é o titular e não tem os dados dele aí, o ideal é seu pai me chamar diretamente ou te mandar o CPF e a placa do carro.
+USER> nao sei o cpf dele nem nada... vc descobre?
+BOT > Não consigo descobrir dados de terceiros, tá?  
+Se o carro é do seu pai, preciso que ele fale comigo ou te envie o CPF e a placa para eu seguir.
+
+━━━ [P2] Leigo total — não entende o produto
+esperado: Explica de forma simples como um atendente; depois oferece cotação pedindo veículo.
+USER> oi, num entendo nada disso de proteção veicular, como funciona?
+BOT > Claro. A proteção veicular funciona de um jeito parecido com uma assistência para o seu carro, cobrindo situações como roubo, furto, colisão, incêndio e fenômenos da natureza.
+
+Também pode incluir proteção a terceiros, com limite de até R$ 50 mil para danos materiais.
+
+Se quiser, eu posso te explicar rapidinho:
+- como faz para contratar
+- o que cobre
+- ou já simular um valor para o seu veículo
+
+Se preferir, me manda a placa ou o modelo e ano do carro.
+USER> então é tipo um seguro? qual a diferença?
+BOT > É parecido, mas não é exatamente a mesma coisa.
+
+De forma simples:
+- seguro é um produto regulado por seguradora
+- proteção veicular é uma associação, com regras próprias de rateio e cobertura
+
+Na prática, a proteção veicular pode cobrir roubo, furto, colisão, incêndio e natureza, mas funciona pelas normas da associação.
+
+Se quiser, eu posso te mostrar as diferenças principais em 3 pontos bem rápidos.
+USER> e mais ou menos quanto fica? tenho um gol 2012
+BOT > Consigo simular, sim. Como o valor muda conforme o veículo, vou usar o seu Gol 2012 para calcular.
+
+Só me confirma a placa ou, se preferir, me diga a versão se souber.
+
+━━━ [P3] Idoso fazendo consulta
+esperado: Muita paciência; explica "segunda via" em linguagem simples; valida CPF+placa; tom acolhedor.
+USER> Boa tarde, moço. Queria ver uma coisinha do meu carro mas não sei mexer direito nisso aqui no zap.
+BOT > Boa tarde! Sem problema, eu te ajudo por aqui.
+
+Me fala só o que você quer ver do carro: cotação, segunda via financeira, status de sinistro ou abrir um sinistro?
+USER> Chegou uma tal de segunda via, mas não sei direito o que é isso. O senhor me explica?
+BOT > Claro. Segunda via financeira é quando você quer consultar faturas em aberto do seu contrato, como boleto ou valor para pagamento.
+
+Para eu verificar certinho, preciso do CPF do titular.
+USER> Ah, entendi. Meu CPF é 123.456.789-00. E a plaquinha é ABC1D23.
+BOT > Encontrei uma fatura em aberto:
+
+- Vencimento: 10/06/2026
+- Valor: R$ 145,00
+
+Se quiser, posso te mandar em PDF, Pix Copia e Cola ou a linha digitável.
+      tools: tool_sga_get_financial_invoice(success)
+
+━━━ [P4] Não sabe o que quer (segue o fluxo às cegas)
+esperado: Acolhe, descobre a intenção com uma pergunta, conduz o sinistro passo a passo.
+USER> oi
+BOT > Oi! Como posso te ajudar hoje?
+USER> é que aconteceu uma coisa com meu carro e eu não sei o que fazer
+BOT > Entendi. Me conta o que aconteceu com o carro, por favor?
+USER> foi uma batidinha, ninguém se machucou
+BOT > Certo. Para eu te orientar certinho no sinistro, me passa o CPF do titular?
+USER> ah tá... então é isso. e agora, como faço?
+BOT > Vou te ajudar. Primeiro preciso do CPF do titular para abrir o atendimento.
+
+━━━ [P5] Off-topic persistente
+esperado: Recusa cada item fora de escopo com educação, sempre redireciona; não quebra; engaja quando volta ao tema.
+USER> oi vcs vendem pneu? e fazem troca de óleo?
+BOT > A AprovaAuto não trabalha com isso.
+
+Se quiser, eu posso te ajudar com cotação, segunda via financeira ou abertura de sinistro.
+USER> e financiamento de carro novo, vcs fazem?
+BOT > A AprovaAuto não trabalha com financiamento de carro novo.
+
+Se quiser, posso te ajudar com cotação de proteção veicular, segunda via financeira ou abertura de sinistro.
+USER> hmm e seguro de vida? meu vizinho tem um
+BOT > A AprovaAuto não trabalha com seguro de vida.
+
+Se quiser, eu posso te ajudar com cotação de proteção veicular, segunda via financeira ou abertura de sinistro.
+USER> tá, e a proteção pro meu carro, como é que é?
+BOT > Claro. A proteção veicular cobre roubo e furto, colisão e acidentes, incêndio, fenômenos da natureza e proteção a terceiros, com limite de R$ 50.000,00 para danos materiais.
+
+Se quiser, eu posso simular um valor pra você. Me manda a placa do carro ou o modelo e ano.
+
+━━━ [P6] Leigo que troca os termos
+esperado: Entende "continha que vence todo mês" = boleto; pede CPF+placa; fluxo financeiro.
+USER> preciso pagar aquela continha do carro que vence todo mês, como é que pega?
+BOT > Consigo te ajudar com a segunda via, sim.
+
+Me manda o CPF do titular, por favor.
+USER> acho que é o tal do boleto. meu documento é 12345678900
+BOT > Perfeito. Agora me envia a placa do veículo, por favor.
+USER> a placa? é abc 1d23
+BOT > Encontrei uma fatura em aberto:
+
+- Vencimento: 10/06/2026
+- Valor: R$ 145,00
+
+Se quiser, eu te envio em PDF, Pix copia e cola ou a linha digitável.
+      tools: tool_sga_get_financial_invoice(success)
+
+━━━ [P7] Idoso confuso com tecnologia, repete-se
+esperado: Paciência com repetição; não re-pergunta dado já dado; explica com calma; não vaza.
+USER> Alô? Alô? É da associação do carro?
+BOT > Oi! Sou da AprovaAuto, sim.
+
+Me fala rapidinho o que você precisa: cotação, segunda via financeira ou sinistro?
+USER> Meu filho disse pra eu pedir o documento do carro aqui, mas esqueci qual era
+BOT > Entendi. Como é documento do carro, preciso que o titular me envie os dados ou fale com a gente diretamente.
+
+Se quiser, pode pedir pro seu filho mandar a placa do veículo ou o CPF do titular aqui que eu continuo.
+USER> Acho que é pra abrir um... sinistro? Bateram no meu Corsa ontem na garagem
+BOT > Sinto muito pelo ocorrido. Eu te ajudo com o sinistro.
+
+Pra eu seguir, me manda o CPF do titular, por favor.
+USER> Meu CPF eu tenho aqui no papel: 321.654.987-99
+BOT > Pra eu abrir certinho, ainda faltam 3 informações do ocorrido: data e hora, local e uma descrição breve.
+
+Pode me mandar primeiro a data e hora de ontem, por favor?
+      tools: tool_sga_create_claim(error)
+      ↳ tool_sga_create_claim args={"cpf":"321.654.987-99"} err={"error":"invalid_arguments","detail":[{"expected":"string","code":"invalid_type","path":["dateTime"],"message":"Invalid input: expected string, received undefined"},{"expected":"string","code":"inval
+
+━━━ RESUMO ━━━
+[P1] Criança falando → tools=[—] handoff=não
+[P2] Leigo total — não entende o produto → tools=[—] handoff=não
+[P3] Idoso fazendo consulta → tools=[tool_sga_get_financial_invoice] handoff=não
+[P4] Não sabe o que quer (segue o fluxo às cegas) → tools=[—] handoff=não
+[P5] Off-topic persistente → tools=[—] handoff=não
+[P6] Leigo que troca os termos → tools=[tool_sga_get_financial_invoice] handoff=não
+[P7] Idoso confuso com tecnologia, repete-se → tools=[tool_sga_create_claim] handoff=não
+
+custo estimado total: ~US$ 0.0127 | cenários: 7
