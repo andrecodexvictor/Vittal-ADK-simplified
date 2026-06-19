@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy → Dokploy (aprovauto-ai)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Push to VittalWeb/Aprovauto-ai
+        env:
+          APROVAUTO_PAT: ${{ secrets.APROVAUTO_PAT }}
+        run: |
+          git config user.email "ci@vittalweb.com"
+          git config user.name "Vittal CI"
+          git remote add aprovauto "https://x-access-token:${APROVAUTO_PAT}@github.com/VittalWeb/Aprovauto-ai.git" 2>/dev/null || \
+            git remote set-url aprovauto "https://x-access-token:${APROVAUTO_PAT}@github.com/VittalWeb/Aprovauto-ai.git"
+          git push aprovauto HEAD:main --force-with-lease
+
+      - name: Trigger Dokploy redeploy
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+        run: |
+          curl -sf -X POST "https://dokploy.vittalweb.com/api/compose.redeploy" \
+            -H "x-api-key: ${DOKPLOY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"composeId":"1AYQiHs3QLPwX4J8f5gCG"}' \
+            && echo "✓ Dokploy redeploy triggered" \
+            || (echo "✗ Dokploy redeploy failed" && exit 1)

@@ -30,6 +30,6 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", "dist", "*.d.ts", "index.ts"]
+    "ignore": ["node_modules", "dist", "*.d.ts", "index.ts", "Reverse-API-scrapper-agent"]
   }
 }

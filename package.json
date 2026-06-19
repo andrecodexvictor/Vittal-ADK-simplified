@@ -8,7 +8,7 @@
     "start": "bun run scripts/run-agent.ts",
     "create-agent": "bun run scripts/create-agent.ts",
     "rag:vectorize": "bun run scripts/vectorize-rag.ts",
-    "test": "bun test",
+    "test": "bun test agents/ src/",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },

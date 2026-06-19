@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { config } from '../core/config'
 
@@ -55,6 +55,7 @@ const PRICING_TABLE: Record<string, { input: number; output: number }> = {
 }
 
 function computeCost(model: string, inputTokens: number, outputTokens: number): number {
+  // biome-ignore lint/style/noNonNullAssertion: gpt-4o-mini is always present in PRICING_TABLE
   const price = PRICING_TABLE[model] || PRICING_TABLE['gpt-4o-mini']!
   return (inputTokens / 1_000_000) * price.input + (outputTokens / 1_000_000) * price.output
 }

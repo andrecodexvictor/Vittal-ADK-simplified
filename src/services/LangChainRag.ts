@@ -232,6 +232,7 @@ export class LangChainRag {
       const missingTexts: string[] = []
 
       for (let i = 0; i < chunks.length; i++) {
+        // biome-ignore lint/style/noNonNullAssertion: index bounded by chunks.length
         const chunk = chunks[i]!
         const hash = this.computeHash(chunk.text)
         const hit = cachedMap.get(hash)
@@ -247,10 +248,13 @@ export class LangChainRag {
         logger.info({ missCount: missingTexts.length }, 'RAG: Buscando novos embeddings via OpenAI...')
         const freshVectors = await embeddings.embedDocuments(missingTexts)
         for (let i = 0; i < missingIndexes.length; i++) {
+          // biome-ignore lint/style/noNonNullAssertion: bounded by missingIndexes.length
           const idx = missingIndexes[i]!
+          // biome-ignore lint/style/noNonNullAssertion: freshVectors has same length as missingIndexes
           const vec = freshVectors[i]!
           resolvedVectors[idx] = vec
-          
+
+          // biome-ignore lint/style/noNonNullAssertion: idx is a valid chunks index
           const chunk = chunks[idx]!
           cachedMap.set(this.computeHash(chunk.text), vec)
         }
