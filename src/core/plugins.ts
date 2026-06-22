@@ -3,6 +3,7 @@ import { config } from './config'
 import { logger } from './logger'
 import type { AgentManifest } from './manifest'
 import { normalizeCpf, normalizePlate, SgaClient, SgaIntegrationError } from '../services/SgaClient'
+import { CrmClient, CrmIntegrationError } from '../services/CrmClient'
 
 export interface Tool {
   name: string
@@ -140,10 +141,10 @@ const SgaUploadClaimDocumentInputSchema = z.object({
 const SgaGetClaimStatusInputSchema = z
   .object({
     claimId: z.string().optional(),
-    cpf: z.string().optional(),
+    plate: z.string().optional(),
   })
-  .refine((input) => Boolean(input.claimId?.trim() || input.cpf?.trim()), {
-    message: 'Informe claimId ou cpf',
+  .refine((input) => Boolean(input.claimId?.trim() || input.plate?.trim()), {
+    message: 'Informe claimId (protocolo) ou plate',
   })
 
 async function withSgaFailureHandoff<T>(ctx: any, operation: string, execute: () => Promise<T>): Promise<T> {
@@ -222,10 +223,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 async function resolveUploadFile(input: z.infer<typeof SgaUploadClaimDocumentInputSchema>, ctx: any): Promise<{
-  file: Blob
+  base64?: string
+  link?: string
   filename: string
-  mimeType: string
 }> {
+  // Hinova /historico-atendimento-associado/foto/cadastrar accepts base64 (binario) OR a public link.
   const dataUri = ctx.currentMedia?.dataUri ?? ctx.imageUrl
   if (dataUri?.startsWith('data:')) {
     const match = /^data:([^;]+);base64,(.+)$/s.exec(dataUri)
@@ -234,26 +236,13 @@ async function resolveUploadFile(input: z.infer<typeof SgaUploadClaimDocumentInp
     const mimeType = match[1]
     const base64 = match[2]
     if (!mimeType || !base64) throw new Error('Imagem em data URI inválida')
-    const buffer = Buffer.from(base64, 'base64')
-    validateUploadBuffer(buffer, mimeType)
-    return {
-      file: new Blob([buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)], { type: mimeType }),
-      filename: `${input.docType}.${extensionFromMime(mimeType)}`,
-      mimeType,
-    }
+    validateUploadBuffer(Buffer.from(base64, 'base64'), mimeType)
+    return { base64, filename: `${input.docType}.${extensionFromMime(mimeType)}` }
   }
 
+  // A public URL (e.g. WhatsApp CDN) can be sent directly as `link`.
   if (input.fileUrl?.trim()) {
-    const response = await fetch(input.fileUrl)
-    if (!response.ok) throw new Error(`Falha ao baixar arquivo para upload: ${response.status}`)
-    const mimeType = response.headers.get('content-type') ?? 'application/octet-stream'
-    const buffer = Buffer.from(await response.arrayBuffer())
-    validateUploadBuffer(buffer, mimeType)
-    return {
-      file: new Blob([buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)], { type: mimeType }),
-      filename: `${input.docType}.${extensionFromMime(mimeType)}`,
-      mimeType,
-    }
+    return { link: input.fileUrl.trim(), filename: `${input.docType}.jpg` }
   }
 
   throw new Error('Nenhum arquivo de mídia disponível para upload')
@@ -302,7 +291,16 @@ const sgaSimulateQuoteTool: Tool = {
   inputSchema: SgaSimulateQuoteInputSchema,
   execute: async (input, ctx) =>
     withSgaFailureHandoff(ctx, 'tool_sga_simulate_quote', async () => {
-      const quote = await sgaClient.simulateQuote(input)
+      // Reuse regional/vehicle-type from the previously searched vehicle when available.
+      const metadata = await ctx.services?.repository?.getConversationMetadata?.(ctx.conversationId)
+      const vehicle = isRecord(metadata?.aprovauto_state)
+        ? (metadata.aprovauto_state as any).lead?.vehicle
+        : undefined
+      const quote = await sgaClient.simulateQuote({
+        ...input,
+        codigoRegional: vehicle?.codigoRegional,
+        codigoTipoVeiculo: vehicle?.codigoTipoVeiculo,
+      })
       await mergeAprovautoState(ctx, { leadQuote: quote })
       return quote
     }),
@@ -381,9 +379,9 @@ const sgaUploadClaimDocumentTool: Tool = {
       const result = await sgaClient.uploadClaimDocument({
         claimId: input.claimId,
         docType: input.docType,
-        file: file.file,
+        base64: file.base64,
+        link: file.link,
         filename: file.filename,
-        mimeType: file.mimeType,
       })
       await mergeAprovautoState(ctx, {
         lastUploadedClaimDocument: {
@@ -404,6 +402,109 @@ const sgaGetClaimStatusTool: Tool = {
   execute: async (input, ctx) =>
     withSgaFailureHandoff(ctx, 'tool_sga_get_claim_status', async () => {
       return sgaClient.getClaimStatus(input)
+    }),
+}
+
+// ── CRM tools (mock-first; enabled by the custom.crm plugin) ──
+const crmClient = new CrmClient()
+
+const CrmGetContactInputSchema = z
+  .object({
+    phone: z.string().optional(),
+    cpf: z.string().optional(),
+  })
+  .refine((input) => Boolean(input.phone?.trim() || input.cpf?.trim()), {
+    message: 'Informe phone ou cpf',
+  })
+
+const CrmUpsertLeadInputSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().min(8),
+  plate: z.string().optional(),
+  modelName: z.string().optional(),
+  interest: z.string().optional(),
+  quotedMonthlyAmount: z.number().positive().optional(),
+  source: z.enum(['whatsapp', 'paid_traffic', 'organic', 'referral']).default('whatsapp'),
+  stage: z.enum(['new', 'qualifying', 'qualified', 'handoff_sales', 'lost']).default('qualifying'),
+})
+
+const CrmLogInteractionInputSchema = z.object({
+  phone: z.string().min(8),
+  summary: z.string().min(1),
+  leadId: z.string().optional(),
+  channel: z.string().optional(),
+  outcome: z.enum(['qualified', 'handoff', 'info_only', 'lost']).optional(),
+})
+
+async function withCrmFailureHandoff<T>(ctx: any, operation: string, execute: () => Promise<T>): Promise<T> {
+  try {
+    return await execute()
+  } catch (err) {
+    const isCrmError = err instanceof CrmIntegrationError
+    logger.error({ err, operation }, 'CRM tool failed')
+
+    const services = ctx.services
+    if (services) {
+      await services.repository.addLog(ctx.executionId, {
+        level: 'error',
+        message: `CRM integration failed: ${operation}`,
+        data: {
+          error: err instanceof Error ? err.message : String(err),
+          code: isCrmError ? err.code : 'tool-error',
+        },
+      })
+
+      if (config.featureAcionarAtendente) {
+        await triggerSgaHandoff(ctx, `Falha na integração CRM: ${operation}`)
+      }
+    }
+
+    return {
+      error: 'crm_unavailable',
+      handoffRequired: true,
+      userMessage:
+        'O CRM está instável no momento. Vou transferir seu atendimento para uma pessoa da equipe continuar com segurança.',
+    } as T
+  }
+}
+
+const crmGetContactTool: Tool = {
+  name: 'tool_crm_get_contact',
+  description:
+    'Recupera o contexto do contato no CRM por telefone ou CPF (se é associado, se há oportunidade aberta, tags). Use para personalizar o atendimento sem pedir dados já conhecidos.',
+  inputSchema: CrmGetContactInputSchema,
+  execute: async (input, ctx) =>
+    withCrmFailureHandoff(ctx, 'tool_crm_get_contact', async () => {
+      const phone = input.phone?.trim() || ctx.senderPhone
+      const contact = await crmClient.getContactByPhone({ phone, cpf: input.cpf })
+      await mergeAprovautoState(ctx, { crmContact: contact })
+      return contact
+    }),
+}
+
+const crmUpsertLeadTool: Tool = {
+  name: 'tool_crm_upsert_lead',
+  description:
+    'Cria ou atualiza um lead comercial no CRM após qualificar o interessado (nome + telefone obrigatórios). Use no fluxo comercial antes de transferir para um consultor.',
+  inputSchema: CrmUpsertLeadInputSchema,
+  execute: async (input, ctx) =>
+    withCrmFailureHandoff(ctx, 'tool_crm_upsert_lead', async () => {
+      const phone = input.phone?.trim() || ctx.senderPhone
+      const lead = await crmClient.upsertLead({ ...input, phone })
+      await mergeAprovautoState(ctx, { crmLead: lead })
+      return lead
+    }),
+}
+
+const crmLogInteractionTool: Tool = {
+  name: 'tool_crm_log_interaction',
+  description:
+    'Registra no CRM um resumo estruturado da conversa (e o desfecho). Use antes de encaminhar um lead qualificado ao consultor humano.',
+  inputSchema: CrmLogInteractionInputSchema,
+  execute: async (input, ctx) =>
+    withCrmFailureHandoff(ctx, 'tool_crm_log_interaction', async () => {
+      const phone = input.phone?.trim() || ctx.senderPhone
+      return crmClient.logInteraction({ ...input, phone })
     }),
 }
 
@@ -436,6 +537,11 @@ export function getActiveTools(manifest: AgentManifest): Tool[] {
       sgaUploadClaimDocumentTool,
       sgaGetClaimStatusTool,
     )
+  }
+
+  // CRM tools — enabled by the custom.crm plugin (lead qualification, recovery, logging)
+  if (capabilities.includes('crm_update') || manifest.plugins.some((p) => p.id === 'custom.crm')) {
+    tools.push(crmGetContactTool, crmUpsertLeadTool, crmLogInteractionTool)
   }
 
   return tools

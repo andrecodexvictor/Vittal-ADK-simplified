@@ -1,0 +1,143 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AprovaAuto CRM API — Contract (PLACEHOLDER)",
+    "version": "0.1.0-mock",
+    "description": "PLACEHOLDER contract for the CRM the AprovaAuto AI agent integrates with (lead qualification, opportunity recovery, interaction logging). The real CRM/API doc will be shared by Lucas Cardozo (onboarding action item). Until then this models a generic REST CRM and CrmClient.ts is mock-first. Swap base URL + field mappings when the official doc arrives."
+  },
+  "servers": [
+    {
+      "url": "{CRM_BASE_URL}",
+      "variables": { "CRM_BASE_URL": { "default": "https://crm.aprovauto.local" } }
+    }
+  ],
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/contacts/search": {
+      "get": {
+        "summary": "Find a contact by phone or CPF (returns CRM context for the conversation)",
+        "operationId": "tool_crm_get_contact",
+        "parameters": [
+          { "name": "phone", "in": "query", "required": false, "schema": { "type": "string" }, "description": "E.164 digits, no punctuation" },
+          { "name": "cpf", "in": "query", "required": false, "schema": { "type": "string" }, "description": "11 digits, no punctuation" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact found (or empty when unknown)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Contact" } } }
+          },
+          "404": { "description": "Contact not found" }
+        }
+      }
+    },
+    "/leads": {
+      "post": {
+        "summary": "Create or update a commercial lead (upsert by phone)",
+        "operationId": "tool_crm_upsert_lead",
+        "description": "Used by the commercial flow after qualifying a lead from paid traffic. Idempotent by phone — updates the existing lead/opportunity when one exists.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "phone"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "phone": { "type": "string", "description": "E.164 digits, no punctuation" },
+                  "plate": { "type": "string" },
+                  "modelName": { "type": "string" },
+                  "interest": { "type": "string", "description": "What the lead wants (e.g. 'cotação proteção veicular')" },
+                  "quotedMonthlyAmount": { "type": "number", "description": "Last simulated monthly amount, when available" },
+                  "source": { "type": "string", "enum": ["whatsapp", "paid_traffic", "organic", "referral"], "default": "whatsapp" },
+                  "stage": { "type": "string", "enum": ["new", "qualifying", "qualified", "handoff_sales", "lost"], "default": "qualifying" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lead upserted",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } }
+          }
+        }
+      }
+    },
+    "/interactions": {
+      "post": {
+        "summary": "Log a conversation interaction / structured summary to the CRM timeline",
+        "operationId": "tool_crm_log_interaction",
+        "description": "Used to register a structured summary before handing a qualified lead to a human consultant, and to keep the CRM timeline in sync.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phone", "summary"],
+                "properties": {
+                  "phone": { "type": "string" },
+                  "leadId": { "type": "string", "description": "When the interaction belongs to a known lead" },
+                  "channel": { "type": "string", "default": "whatsapp" },
+                  "summary": { "type": "string", "description": "Short structured summary of the conversation" },
+                  "outcome": { "type": "string", "enum": ["qualified", "handoff", "info_only", "lost"], "description": "Resulting disposition" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interaction logged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "interactionId": { "type": "string" },
+                    "loggedAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "CRM_BEARER_TOKEN from env. Sent as Authorization: Bearer <token> on every call."
+      }
+    },
+    "schemas": {
+      "Contact": {
+        "type": "object",
+        "properties": {
+          "contactId": { "type": "string" },
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "cpf": { "type": "string" },
+          "isMember": { "type": "boolean", "description": "True when the contact is an active associado" },
+          "openLeadId": { "type": "string", "description": "Existing open opportunity, when any" },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "Lead": {
+        "type": "object",
+        "properties": {
+          "leadId": { "type": "string" },
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "stage": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

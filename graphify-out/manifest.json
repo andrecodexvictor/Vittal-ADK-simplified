@@ -1,0 +1,502 @@
+{
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\.claude\\settings.local.json": {
+    "mtime": 1781897367.494389,
+    "ast_hash": "18bf699e5e2491681f4b1ac424f07dd7",
+    "semantic_hash": "18bf699e5e2491681f4b1ac424f07dd7"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\package.json": {
+    "mtime": 1781801833.4578452,
+    "ast_hash": "207e2d7c40b66e1c5067f0de998c4522",
+    "semantic_hash": "207e2d7c40b66e1c5067f0de998c4522"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\scripts\\crawl.js": {
+    "mtime": 1781897736.1222918,
+    "ast_hash": "791163a7f7dfff921a20fdf056224825",
+    "semantic_hash": "791163a7f7dfff921a20fdf056224825"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\scripts\\scrape.js": {
+    "mtime": 1781801833.4598458,
+    "ast_hash": "77e605d556c9b90d85ad794d96f4d626",
+    "semantic_hash": "77e605d556c9b90d85ad794d96f4d626"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\agent.manifest.json": {
+    "mtime": 1782152898.4949956,
+    "ast_hash": "41b192bb78765b6852d9d02b54cc35d2",
+    "semantic_hash": "41b192bb78765b6852d9d02b54cc35d2"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\sga.openapi.json": {
+    "mtime": 1781804585.4663682,
+    "ast_hash": "72d960f626f7d7450c1a67164ef727f8",
+    "semantic_hash": "72d960f626f7d7450c1a67164ef727f8"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\tests\\agent.test.ts": {
+    "mtime": 1782154634.6111908,
+    "ast_hash": "66fc548ac1124ce133d7b1ab34d7aed1",
+    "semantic_hash": "66fc548ac1124ce133d7b1ab34d7aed1"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\biome.json": {
+    "mtime": 1781898143.8509717,
+    "ast_hash": "9ed2cf840cfa9df9134df40fa12a5722",
+    "semantic_hash": "9ed2cf840cfa9df9134df40fa12a5722"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\package.json": {
+    "mtime": 1782155056.0061827,
+    "ast_hash": "ba690208758223ccbe31bc8dad0193b2",
+    "semantic_hash": "ba690208758223ccbe31bc8dad0193b2"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\create-agent.ts": {
+    "mtime": 1781727058.2373843,
+    "ast_hash": "6cded7541277823c9f493bc72d208020",
+    "semantic_hash": "6cded7541277823c9f493bc72d208020"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\run-agent.ts": {
+    "mtime": 1781725847.260536,
+    "ast_hash": "85e1141fac4c1fd6ee26a32240ee1db6",
+    "semantic_hash": "85e1141fac4c1fd6ee26a32240ee1db6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\simulate-agent.ts": {
+    "mtime": 1782154779.0837536,
+    "ast_hash": "a3370a4db9042503b8f2054f851f5ea0",
+    "semantic_hash": "a3370a4db9042503b8f2054f851f5ea0"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\vectorize-rag.ts": {
+    "mtime": 1781725829.4717407,
+    "ast_hash": "92d785642f85940ac035d7c2a31ad344",
+    "semantic_hash": "92d785642f85940ac035d7c2a31ad344"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\core\\ProcessMessage.ts": {
+    "mtime": 1781727533.4164305,
+    "ast_hash": "7289e8b9a841844e80133b552f0d139b",
+    "semantic_hash": "7289e8b9a841844e80133b552f0d139b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\core\\config.ts": {
+    "mtime": 1782154082.1175506,
+    "ast_hash": "094c08e4464dbb4036c3881da4bbd27c",
+    "semantic_hash": "094c08e4464dbb4036c3881da4bbd27c"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\core\\logger.ts": {
+    "mtime": 1781718762.1410933,
+    "ast_hash": "e17f295b13a505dd402ed696e86c56df",
+    "semantic_hash": "e17f295b13a505dd402ed696e86c56df"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\core\\manifest.ts": {
+    "mtime": 1781718762.1410933,
+    "ast_hash": "f7dc0b96a465ad8c7ecca618e5e9f3ed",
+    "semantic_hash": "f7dc0b96a465ad8c7ecca618e5e9f3ed"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\core\\plugins.ts": {
+    "mtime": 1782154215.7620509,
+    "ast_hash": "4abb220b25fbf74547a5331a4ee67c7b",
+    "semantic_hash": "4abb220b25fbf74547a5331a4ee67c7b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\main.ts": {
+    "mtime": 1781718762.1440957,
+    "ast_hash": "061620142bfc586d3b1cca5f1afe8b47",
+    "semantic_hash": "061620142bfc586d3b1cca5f1afe8b47"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\presentation\\server.ts": {
+    "mtime": 1781724496.3932362,
+    "ast_hash": "dc5d32c64c1d5266eaa5aae6f19c3085",
+    "semantic_hash": "dc5d32c64c1d5266eaa5aae6f19c3085"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\HandoffService.ts": {
+    "mtime": 1781718762.1450942,
+    "ast_hash": "b4cf04d38261db11d9532e418d73bdd4",
+    "semantic_hash": "b4cf04d38261db11d9532e418d73bdd4"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\LangChainRag.ts": {
+    "mtime": 1781898170.9646893,
+    "ast_hash": "56ae431619aa5239d8cd36ebdfb220cf",
+    "semantic_hash": "56ae431619aa5239d8cd36ebdfb220cf"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\MediaService.ts": {
+    "mtime": 1781718762.146095,
+    "ast_hash": "adf5b6dfea52aa9147c3b281479de60b",
+    "semantic_hash": "adf5b6dfea52aa9147c3b281479de60b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\OpenAIProvider.ts": {
+    "mtime": 1781898194.9964333,
+    "ast_hash": "233cb9748ca573bdcfd421804b5ace17",
+    "semantic_hash": "233cb9748ca573bdcfd421804b5ace17"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\RabbitMQ.ts": {
+    "mtime": 1781718762.1470942,
+    "ast_hash": "7193d981641635a04383c10b07acd6b6",
+    "semantic_hash": "7193d981641635a04383c10b07acd6b6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\RestConversationRepository.ts": {
+    "mtime": 1781728445.4331167,
+    "ast_hash": "2a0ef64bfa8dd7543b88b88d97e9c34c",
+    "semantic_hash": "2a0ef64bfa8dd7543b88b88d97e9c34c"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\SgaClient.ts": {
+    "mtime": 1782154394.0353253,
+    "ast_hash": "8cc2f5ca8037a0c3e623e5d45c2c9b96",
+    "semantic_hash": "8cc2f5ca8037a0c3e623e5d45c2c9b96"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\tests\\agent.test.ts": {
+    "mtime": 1781890497.4896877,
+    "ast_hash": "0460f877bac5832688b8f704aed59ef2",
+    "semantic_hash": "0460f877bac5832688b8f704aed59ef2"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\tsconfig.json": {
+    "mtime": 1781718762.153097,
+    "ast_hash": "3c963a7a213dce2fec8b963567068a61",
+    "semantic_hash": "3c963a7a213dce2fec8b963567068a61"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\.github\\workflows\\ci.yml": {
+    "mtime": 1781897648.5020578,
+    "ast_hash": "7b4a531b1a910a0ade7a8d469e3b9d3d",
+    "semantic_hash": "7b4a531b1a910a0ade7a8d469e3b9d3d"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\.github\\workflows\\deploy.yml": {
+    "mtime": 1781897669.5102837,
+    "ast_hash": "8d097671b95e5330e857e6b3704a9632",
+    "semantic_hash": "8d097671b95e5330e857e6b3704a9632"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\CLAUDE.md": {
+    "mtime": 1781720840.1493528,
+    "ast_hash": "dcbb70365f9be3c067df61ad6c881318",
+    "semantic_hash": "dcbb70365f9be3c067df61ad6c881318"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\CONFIGURACAO.md": {
+    "mtime": 1782154491.9158387,
+    "ast_hash": "4fb74c713702d2ecdaf8ebd0cc182671",
+    "semantic_hash": "4fb74c713702d2ecdaf8ebd0cc182671"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\GEMINI.md": {
+    "mtime": 1781718762.122093,
+    "ast_hash": "8a3c5d486fc01f5bbf8707fdbb89588f",
+    "semantic_hash": "8a3c5d486fc01f5bbf8707fdbb89588f"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\GEMINI2.md": {
+    "mtime": 1781718762.1230936,
+    "ast_hash": "4fd3abbeeec7c0d426e8cf3e1c9a364e",
+    "semantic_hash": "4fd3abbeeec7c0d426e8cf3e1c9a364e"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\README.md": {
+    "mtime": 1781725757.342264,
+    "ast_hash": "2e0ec21bcfac53a8ee5cb89383130abb",
+    "semantic_hash": "2e0ec21bcfac53a8ee5cb89383130abb"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\CLAUDE.md": {
+    "mtime": 1781802243.4740598,
+    "ast_hash": "dbc20555dc0439455b6b870952edc336",
+    "semantic_hash": "dbc20555dc0439455b6b870952edc336"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\GEMINI.md": {
+    "mtime": 1781801833.4426453,
+    "ast_hash": "c4005ee3a2e70a52e897ec37ae3ac80d",
+    "semantic_hash": "c4005ee3a2e70a52e897ec37ae3ac80d"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\README.md": {
+    "mtime": 1781801833.4426453,
+    "ast_hash": "9d2fc9d9ff859a8a88787feaaa9e6efd",
+    "semantic_hash": "9d2fc9d9ff859a8a88787feaaa9e6efd"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\base mds\\Claude md teplate.md": {
+    "mtime": 1781801833.4436536,
+    "ast_hash": "cfe3056e574eae0af32d98437b5dc982",
+    "semantic_hash": "cfe3056e574eae0af32d98437b5dc982"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\base mds\\Claude.md": {
+    "mtime": 1781801833.4436536,
+    "ast_hash": "7ec7927362e4191711d3a6cedd02de0f",
+    "semantic_hash": "7ec7927362e4191711d3a6cedd02de0f"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\notes\\aprovauto-ai\\raw_docs.md": {
+    "mtime": 1781890444.4726162,
+    "ast_hash": "5f5f06a49db04622d3f14142babff2aa",
+    "semantic_hash": "5f5f06a49db04622d3f14142babff2aa"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\CLAUDE.md": {
+    "mtime": 1781891121.8767974,
+    "ast_hash": "d0af7dde2e3ba454fa241e0f45b7dca4",
+    "semantic_hash": "d0af7dde2e3ba454fa241e0f45b7dca4"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\HARNESS_INTEGRATION.md": {
+    "mtime": 1781891124.392719,
+    "ast_hash": "ac57c542b0d76336657797f92a8927fa",
+    "semantic_hash": "ac57c542b0d76336657797f92a8927fa"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\INTEGRATION_SPEC.md": {
+    "mtime": 1781891126.7977538,
+    "ast_hash": "197081bdba2593ab14b2a4f76970c409",
+    "semantic_hash": "197081bdba2593ab14b2a4f76970c409"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\ROADMAP.md": {
+    "mtime": 1781891129.1130507,
+    "ast_hash": "600a15aeff59dc8418e013ad81fd62c1",
+    "semantic_hash": "600a15aeff59dc8418e013ad81fd62c1"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\TASKLIST.md": {
+    "mtime": 1781891131.2652514,
+    "ast_hash": "3e7f925d3eab3f7ed83d743bb8fc46f3",
+    "semantic_hash": "3e7f925d3eab3f7ed83d743bb8fc46f3"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\aprovauto-ai\\TOOLS_SCHEMA.md": {
+    "mtime": 1781891133.6796675,
+    "ast_hash": "3a3a5dd1c22e7552b22f8ddeaca340da",
+    "semantic_hash": "3a3a5dd1c22e7552b22f8ddeaca340da"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\CLAUDE.md": {
+    "mtime": 1781801833.4456615,
+    "ast_hash": "131240a23ac6aaf7460866d2472a12fe",
+    "semantic_hash": "131240a23ac6aaf7460866d2472a12fe"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\HARNESS_INTEGRATION.md": {
+    "mtime": 1781801833.446661,
+    "ast_hash": "a7dcb95d5b3047ffd90cc1e0a56eaba9",
+    "semantic_hash": "a7dcb95d5b3047ffd90cc1e0a56eaba9"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\INTEGRATION_SPEC.md": {
+    "mtime": 1781801833.446661,
+    "ast_hash": "65f808ffbb07051c8c1d3851b3118b7a",
+    "semantic_hash": "65f808ffbb07051c8c1d3851b3118b7a"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\ROADMAP.md": {
+    "mtime": 1781801833.4476604,
+    "ast_hash": "58f01e859851c4f631386b27777c3e73",
+    "semantic_hash": "58f01e859851c4f631386b27777c3e73"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\TASKLIST.md": {
+    "mtime": 1781801833.4476604,
+    "ast_hash": "515e674aa9d872041ef2986dd81835c9",
+    "semantic_hash": "515e674aa9d872041ef2986dd81835c9"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\example-client\\TOOLS_SCHEMA.md": {
+    "mtime": 1781801833.4486604,
+    "ast_hash": "9a882177d982a6d3565e92bf3860ee29",
+    "semantic_hash": "9a882177d982a6d3565e92bf3860ee29"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\CLAUDE.md": {
+    "mtime": 1781801833.4496613,
+    "ast_hash": "85b6ab23f93cede74845731b46be7b42",
+    "semantic_hash": "85b6ab23f93cede74845731b46be7b42"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\HARNESS_INTEGRATION.md": {
+    "mtime": 1781801833.450662,
+    "ast_hash": "aaba61ff0e7ef27440ee0be300a85a6e",
+    "semantic_hash": "aaba61ff0e7ef27440ee0be300a85a6e"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\INTEGRATION_SPEC.md": {
+    "mtime": 1781801833.4513066,
+    "ast_hash": "08dd061948b4f94a4d2d9fc2cc7c0868",
+    "semantic_hash": "08dd061948b4f94a4d2d9fc2cc7c0868"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\ROADMAP.md": {
+    "mtime": 1781801833.4518263,
+    "ast_hash": "2a6f5eae35eec9ea1d4525d6866f0e97",
+    "semantic_hash": "2a6f5eae35eec9ea1d4525d6866f0e97"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\TASKLIST.md": {
+    "mtime": 1781801833.4568448,
+    "ast_hash": "9b5eddf37a545c390aa99ec5d8ba8941",
+    "semantic_hash": "9b5eddf37a545c390aa99ec5d8ba8941"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\outputs\\firecrawl-scraper\\TOOLS_SCHEMA.md": {
+    "mtime": 1781801833.4578452,
+    "ast_hash": "dd44c12989a4c9404093714c2c269dfd",
+    "semantic_hash": "dd44c12989a4c9404093714c2c269dfd"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\Reverse-API-scrapper-agent\\spec\\PRD_REVERSE_API_SCRAPER.md": {
+    "mtime": 1781801833.4608452,
+    "ast_hash": "eb1f5b0d3b5ca6aa0073eda6fd9a4e66",
+    "semantic_hash": "eb1f5b0d3b5ca6aa0073eda6fd9a4e66"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\knowledge\\aprovauto_faq.md": {
+    "mtime": 1781724239.5073073,
+    "ast_hash": "05d16c8706839e13a1089add1f3eb92b",
+    "semantic_hash": "05d16c8706839e13a1089add1f3eb92b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\prompts\\system.md": {
+    "mtime": 1782154314.0523808,
+    "ast_hash": "d8560c3cd7ce84e396d599ab09ab33f3",
+    "semantic_hash": "d8560c3cd7ce84e396d599ab09ab33f3"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\PRD_AGENT.md": {
+    "mtime": 1782153233.6934407,
+    "ast_hash": "9af540ec1e05cfa417c80ed396a3caa1",
+    "semantic_hash": "9af540ec1e05cfa417c80ed396a3caa1"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\RAG_AND_TOOL_CALLS.md": {
+    "mtime": 1782154330.0719936,
+    "ast_hash": "63349c699f4350026ef70dbd68cd26dc",
+    "semantic_hash": "63349c699f4350026ef70dbd68cd26dc"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\WHATSAPP_UAT_STRESS_TESTS.md": {
+    "mtime": 1781804718.842942,
+    "ast_hash": "13f8f2edc217d703c0ec64f78062b206",
+    "semantic_hash": "13f8f2edc217d703c0ec64f78062b206"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\examples.md": {
+    "mtime": 1781804638.5996559,
+    "ast_hash": "82bcbcb80b344cd1a2e999758bf74aff",
+    "semantic_hash": "82bcbcb80b344cd1a2e999758bf74aff"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\flows.md": {
+    "mtime": 1782154328.271257,
+    "ast_hash": "121d5a89de56bd77597ac0d1b2368af6",
+    "semantic_hash": "121d5a89de56bd77597ac0d1b2368af6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\tasks.md": {
+    "mtime": 1782153249.062457,
+    "ast_hash": "5e7791d0b02cddc3fec086a400659f5c",
+    "semantic_hash": "5e7791d0b02cddc3fec086a400659f5c"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\tests\\PERSONA_SIM_TRANSCRIPT.txt": {
+    "mtime": 1781894834.3593314,
+    "ast_hash": "f2162fdfada0c1f354218b331d2f1734",
+    "semantic_hash": "f2162fdfada0c1f354218b331d2f1734"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\tests\\UAT_SIM_TRANSCRIPT.txt": {
+    "mtime": 1781893599.874982,
+    "ast_hash": "46163e8ed593ae3ecfe1d68c563b2ef4",
+    "semantic_hash": "46163e8ed593ae3ecfe1d68c563b2ef4"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\aprovauto debriefing to prd and specs.md": {
+    "mtime": 1781719765.742714,
+    "ast_hash": "0c9e871793b45b2056f3bb39e88c6651",
+    "semantic_hash": "0c9e871793b45b2056f3bb39e88c6651"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docker-compose.yml": {
+    "mtime": 1781898517.7366157,
+    "ast_hash": "143c048cee2572ea8337230b9fe2d8dd",
+    "semantic_hash": "143c048cee2572ea8337230b9fe2d8dd"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docs\\GEMINI.md": {
+    "mtime": 1781718762.131096,
+    "ast_hash": "26670752084fbbfbdfe67737e47c4d9b",
+    "semantic_hash": "26670752084fbbfbdfe67737e47c4d9b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docs\\GEMINI2.md": {
+    "mtime": 1781718762.131096,
+    "ast_hash": "52d2c7947e637cd03f7d3c251c9ecbb2",
+    "semantic_hash": "52d2c7947e637cd03f7d3c251c9ecbb2"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docs\\specs\\ADK-SPEC.md": {
+    "mtime": 1781718762.1320944,
+    "ast_hash": "4cee7f1e4f2e0666fbe0cc30ff6926df",
+    "semantic_hash": "4cee7f1e4f2e0666fbe0cc30ff6926df"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docs\\specs\\AGENT-SPEC-TEMPLATE.md": {
+    "mtime": 1781718762.1320944,
+    "ast_hash": "6eb61aefd4521a64cbc66c3e155fd44d",
+    "semantic_hash": "6eb61aefd4521a64cbc66c3e155fd44d"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\docs\\specs\\PROCESS.md": {
+    "mtime": 1781718762.1330953,
+    "ast_hash": "2212620bc20a2bfdd43ae2b75c020f4f",
+    "semantic_hash": "2212620bc20a2bfdd43ae2b75c020f4f"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\prompts\\system.md": {
+    "mtime": 1781890497.486386,
+    "ast_hash": "3a680f5c3a6f9c7902ce1b86d487959a",
+    "semantic_hash": "3a680f5c3a6f9c7902ce1b86d487959a"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\spec\\PRD_AGENT.md": {
+    "mtime": 1781890497.4869435,
+    "ast_hash": "570cd4a0be55248984fc1c79bd1d0346",
+    "semantic_hash": "570cd4a0be55248984fc1c79bd1d0346"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\spec\\examples.md": {
+    "mtime": 1781890497.4874911,
+    "ast_hash": "65d5612d48f21e205689c26904835213",
+    "semantic_hash": "65d5612d48f21e205689c26904835213"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\spec\\flows.md": {
+    "mtime": 1781890497.4880588,
+    "ast_hash": "acf011f5d850046b001da496145eb3d5",
+    "semantic_hash": "acf011f5d850046b001da496145eb3d5"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\templates\\agent\\spec\\tasks.md": {
+    "mtime": 1781890497.488612,
+    "ast_hash": "fb102c15a1e4f1d3b5a1b1266a4d4f1c",
+    "semantic_hash": "fb102c15a1e4f1d3b5a1b1266a4d4f1c"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\crm.openapi.json": {
+    "mtime": 1782152770.5827851,
+    "ast_hash": "99ae5a3d3894305a8bf3212a5d3c58b6",
+    "semantic_hash": "99ae5a3d3894305a8bf3212a5d3c58b6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\tests\\crm-tools.test.ts": {
+    "mtime": 1782153047.2500792,
+    "ast_hash": "62aff81cbdd27b1174dd9f9b7c9994eb",
+    "semantic_hash": "62aff81cbdd27b1174dd9f9b7c9994eb"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\tests\\intent-routing.test.ts": {
+    "mtime": 1782153000.6640604,
+    "ast_hash": "85a29de1b1b7f70f004a0905cf6b4d80",
+    "semantic_hash": "85a29de1b1b7f70f004a0905cf6b4d80"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\billing-runner.ts": {
+    "mtime": 1782154973.7891371,
+    "ast_hash": "bf6546b8b933fd29ed914923762a7b90",
+    "semantic_hash": "bf6546b8b933fd29ed914923762a7b90"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\lib\\billing-rules.test.ts": {
+    "mtime": 1782155004.070517,
+    "ast_hash": "f748db2d5042826b2d4fbaf07ada254b",
+    "semantic_hash": "f748db2d5042826b2d4fbaf07ada254b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\lib\\billing-rules.ts": {
+    "mtime": 1782154921.7597752,
+    "ast_hash": "17751efc66125e9c98547b8040afa9b9",
+    "semantic_hash": "17751efc66125e9c98547b8040afa9b9"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\lib\\sga-mock.ts": {
+    "mtime": 1782154741.7107708,
+    "ast_hash": "163eaf57fce0dd7ca2669984bfe22aea",
+    "semantic_hash": "163eaf57fce0dd7ca2669984bfe22aea"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\scripts\\wa-sim-server.ts": {
+    "mtime": 1782155088.4764743,
+    "ast_hash": "ff6ba2ce5f24cf7cf08355a100dcefd6",
+    "semantic_hash": "ff6ba2ce5f24cf7cf08355a100dcefd6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\src\\services\\CrmClient.ts": {
+    "mtime": 1782152798.6576426,
+    "ast_hash": "8fcf943d28f4d104d590afb1743a1319",
+    "semantic_hash": "8fcf943d28f4d104d590afb1743a1319"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\DEV-LOOP.md": {
+    "mtime": 1782154689.075229,
+    "ast_hash": "7f001835c7bac3afb3a3b5a0341ef9c6",
+    "semantic_hash": "7f001835c7bac3afb3a3b5a0341ef9c6"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\ROADMAP.md": {
+    "mtime": 1782155135.5421264,
+    "ast_hash": "72df47ec2815c7cf0cfaaf37c96d2047",
+    "semantic_hash": "72df47ec2815c7cf0cfaaf37c96d2047"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M1-integracao-roteamento.md": {
+    "mtime": 1782153139.6332562,
+    "ast_hash": "69919fb5d29b023093c7af13c0cafa98",
+    "semantic_hash": "69919fb5d29b023093c7af13c0cafa98"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M2-sinistro.md": {
+    "mtime": 1782155147.0322404,
+    "ast_hash": "e52a5aef1e364b10c7217829907dff1e",
+    "semantic_hash": "e52a5aef1e364b10c7217829907dff1e"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M3-cobranca.md": {
+    "mtime": 1782154482.984225,
+    "ast_hash": "d72ca0c3a86d6596fd93f2b65c36ba6b",
+    "semantic_hash": "d72ca0c3a86d6596fd93f2b65c36ba6b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M4-associado.md": {
+    "mtime": 1782153187.536453,
+    "ast_hash": "e1dae09ca396f760c540c907a75f675b",
+    "semantic_hash": "e1dae09ca396f760c540c907a75f675b"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M5-comercial.md": {
+    "mtime": 1782153202.8223495,
+    "ast_hash": "2a51fd867ff8f310ec5151ca559aa482",
+    "semantic_hash": "2a51fd867ff8f310ec5151ca559aa482"
+  },
+  "C:\\Users\\Usuario\\Desktop\\Vittal-ADK-simplified\\agents\\aprovauto-ai\\whatsapp\\spec\\modules\\M6-monitoramento.md": {
+    "mtime": 1782153214.5725641,
+    "ast_hash": "b09bd507cc827905391473a8a2cfb581",
+    "semantic_hash": "b09bd507cc827905391473a8a2cfb581"
+  }
+}

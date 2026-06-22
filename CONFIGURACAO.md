@@ -40,6 +40,25 @@ Este documento detalha todas as variáveis de ambiente e flags de comportamento 
 - **`SGA_CIRCUIT_WINDOW_MS`**: Janela de contagem de falhas do circuit breaker (padrão: `60000`).
 - **`SGA_CIRCUIT_OPEN_MS`**: Tempo de bloqueio enquanto o circuit breaker estiver aberto (padrão: `120000`).
 - **`SGA_MAX_UPLOAD_BYTES`**: Tamanho máximo de documento enviado ao SGA (padrão: `10485760`).
+- **`SGA_USUARIO`** / **`SGA_SENHA`**: Credenciais do usuário ATIVO do SGA enviadas no corpo de `POST /usuario/autenticar` (auth two-step). O `token_usuario` retornado é cacheado e usado como Bearer; não expira.
+- **`SGA_DEFAULT_REGIONAL`** / **`SGA_DEFAULT_TIPO_VEICULO`**: Códigos usados na simulação de rateio quando não vierem do veículo.
+- **`SGA_CLAIM_STATUS_CODE`** / **`SGA_CLAIM_TYPE_CODE`** / **`SGA_SINISTRO_DEPT_CODE`**: Códigos operacionais para abrir sinistro em `/cadastrar/historico-atendimento-associado`.
+- **`SGA_BOLETO_OPEN_STATUS_CODE`**: Código da situação "ABERTO" do boleto (padrão: `2`). Confirme via `GET /listar/situacao-boleto/todos`.
+
+### 6.1 Régua de Cobrança Ativa (worker `billing-runner.ts`)
+- **`BILLING_DRY_RUN`**: Se `true` (padrão), apenas registra os lembretes que enviaria, sem publicar. Use `false` (ou `--live`) para disparar de verdade.
+- **`BILLING_OVERDUE_GRACE_DAYS`**: Janela de carência D+1 — não cobra boletos vencidos há ≤ N dias (baixa manual; padrão: `2`).
+- **`BILLING_PAGE_SIZE`** / **`BILLING_MAX_PAGES`**: Paginação da varredura de boletos (padrões: `3000` / `20`).
+- **`BILLING_REMINDER_GROUP`**: (opcional) grupo para resumo dos disparos.
+
+### 7. CRM / AprovaAuto (mock-first)
+> Todas opcionais com default enquanto a integração é mock-first. Ao trocar pelo CRM real, preencher e declarar em `requiredEnv` do plugin `custom.crm`. Contrato placeholder: `agents/aprovauto-ai/whatsapp/spec/crm.openapi.json`.
+- **`CRM_BASE_URL`**: URL base da API do CRM (padrão: `https://crm.aprovauto.local`).
+- **`CRM_BEARER_TOKEN`**: Token Bearer enviado no cabeçalho `Authorization`.
+- **`CRM_TIMEOUT_MS`**: Timeout por chamada ao CRM (padrão: `10000`).
+- **`CRM_CIRCUIT_FAILURE_THRESHOLD`**: Falhas para abrir o circuit breaker do CRM (padrão: `3`).
+- **`CRM_CIRCUIT_WINDOW_MS`**: Janela de contagem de falhas (padrão: `60000`).
+- **`CRM_CIRCUIT_OPEN_MS`**: Tempo de bloqueio com o breaker aberto (padrão: `120000`).
 
 ---
 

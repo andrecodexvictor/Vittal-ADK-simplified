@@ -8,7 +8,10 @@
     "start": "bun run scripts/run-agent.ts",
     "create-agent": "bun run scripts/create-agent.ts",
     "rag:vectorize": "bun run scripts/vectorize-rag.ts",
-    "test": "bun test agents/ src/",
+    "sim": "bun run scripts/wa-sim-server.ts --agent aprovauto-ai",
+    "sim:uat": "bun run scripts/simulate-agent.ts --agent aprovauto-ai",
+    "billing": "bun run scripts/billing-runner.ts --agent aprovauto-ai",
+    "test": "bun test agents/ src/ scripts/",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },

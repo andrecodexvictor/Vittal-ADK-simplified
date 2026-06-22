@@ -19,7 +19,7 @@ Observações:
 3. Chamar `tool_sga_get_financial_invoice`.
 4. Se não autorizado, não expor dados e transbordar.
 5. Se autorizado, listar faturas abertas.
-6. Perguntar preferência: PDF, Pix Copia e Cola ou linha digitável.
+6. Oferecer link do boleto (PDF) e linha digitável; Pix copia e cola apenas se vier na resposta (`pixCopyPaste`).
 
 ## Fluxo 3 — Abertura de Sinistro
 1. Demonstrar empatia e pedir CPF somente se ainda não estiver no histórico.
@@ -31,7 +31,7 @@ Observações:
 7. Para cada mídia, chamar `tool_sga_upload_claim_document`.
 
 ## Fluxo 4 — Status de Sinistro
-1. Pedir protocolo/ID ou CPF.
+1. Pedir protocolo/ID ou placa do veículo.
 2. Chamar `tool_sga_get_claim_status`.
 3. Resumir o status e oferecer handoff se necessário.
 

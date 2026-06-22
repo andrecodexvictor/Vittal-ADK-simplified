@@ -1,5 +1,17 @@
 import { config } from '../core/config'
 
+/**
+ * SgaClient — integração real com a API Hinova SGA v2.
+ *
+ * Autenticação two-step: POST /usuario/autenticar (Bearer estático SGA_API_TOKEN +
+ * body usuario/senha) retorna token_usuario (não expira), cacheado em nível de
+ * módulo e usado como Bearer nas demais chamadas. Endpoints conforme
+ * spec/sga.openapi.json e doc oficial https://api.hinova.com.br/api/sga/v2/doc/.
+ *
+ * Datas de entrada: dd/mm/yyyy. Valores monetários vêm como String (vírgula ou
+ * ponto) — normalizados aqui. A API NÃO expõe PIX: pagamento é por boleto
+ * (link_boleto) e linha digitável.
+ */
 export class SgaIntegrationError extends Error {
   constructor(
     message: string,
@@ -17,6 +29,8 @@ export interface SgaVehicle {
   brand?: string
   year?: number
   fipeValue: number
+  codigoRegional?: number
+  codigoTipoVeiculo?: string
   hasActiveContract?: boolean
 }
 
@@ -29,14 +43,23 @@ export interface SgaQuote {
 }
 
 export interface SgaInvoice {
-  invoiceId: string
+  invoiceId: string // nosso_numero
   dueDate: string
   amount: number
   status: string
-  boletoPdfUrl?: string
-  barcode?: string
-  pixCopyPaste?: string
+  boletoPdfUrl?: string // link_boleto
+  barcode?: string // linha_digitavel
+  pixCopyPaste?: string // only when the SGA response includes a Pix field
   contractPlate?: string
+  daysOverdue?: number
+}
+
+export interface SgaBoletoListItem extends SgaInvoice {
+  associadoCode?: string
+  associadoName?: string
+  cpf?: string
+  phone?: string
+  email?: string
 }
 
 export interface SgaClaim {
@@ -52,12 +75,22 @@ export interface SgaClaimStatus {
   updatedAt?: string
 }
 
+export interface SgaFinancialStatus {
+  cpf?: string
+  name?: string
+  plate?: string
+  vehicleCode?: string
+  modelName?: string
+  isDelinquent: boolean
+  rawStatus: string
+}
+
 type RequestOptions = {
   method: 'GET' | 'POST'
   path: string
   query?: Record<string, string | number | boolean | undefined>
   body?: unknown
-  formData?: FormData
+  skipAuth?: boolean // true only for /usuario/autenticar
 }
 
 class SgaCircuitBreaker {
@@ -85,6 +118,15 @@ class SgaCircuitBreaker {
 }
 
 const circuitBreaker = new SgaCircuitBreaker()
+let cachedToken: string | null = null
+let authPromise: Promise<string> | null = null
+
+/** Test/sim helper: resets cached token + circuit breaker between runs. */
+export function __resetSgaState(): void {
+  cachedToken = null
+  authPromise = null
+  circuitBreaker.recordSuccess()
+}
 
 export class SgaClient {
   private readonly baseUrl: string
@@ -94,22 +136,33 @@ export class SgaClient {
   }
 
   async searchVehicle(input: { plate?: string; modelName?: string }): Promise<SgaVehicle> {
-    const data = await this.request<any>({
-      method: 'GET',
-      path: '/vehicles/search',
-      query: {
-        plate: input.plate ? normalizePlate(input.plate) : undefined,
-        modelName: input.modelName,
-      },
-    })
+    if (input.plate?.trim()) {
+      const plate = normalizePlate(input.plate)
+      const data = await this.request<any>({
+        method: 'GET',
+        path: `/veiculo/buscar-por-permissao/${encodeURIComponent(plate)}/`,
+      })
+      const vehicle = Array.isArray(data) ? data[0] : data
+      if (!vehicle) throw new SgaIntegrationError('Veículo não encontrado', 406, 'sga-vehicle-not-found')
+      return mapVehicle(vehicle, plate)
+    }
 
+    // Search by model name → /modelo/listar then map the best match
+    const models = await this.request<any>({
+      method: 'POST',
+      path: '/modelo/listar',
+      body: { situacao: 'ativo', inicio_paginacao: 0, quantidade_por_pagina: 50 },
+    })
+    const list: any[] = Array.isArray(models) ? models : models.modelos ?? []
+    const wanted = (input.modelName ?? '').toLowerCase()
+    const match =
+      list.find((m) => `${m.descricao_modelo ?? ''}`.toLowerCase().includes(wanted)) ?? list[0]
+    if (!match) throw new SgaIntegrationError('Modelo não encontrado', 406, 'sga-model-not-found')
     return {
-      plate: data.plate ? normalizePlate(String(data.plate)) : input.plate,
-      modelName: String(data.modelName ?? data.model_name ?? data.name ?? ''),
-      brand: data.brand ? String(data.brand) : undefined,
-      year: data.year ? Number(data.year) : undefined,
-      fipeValue: Number(data.fipeValue ?? data.fipe_value ?? data.vehicleValue ?? 0),
-      hasActiveContract: data.hasActiveContract ?? data.has_active_contract,
+      modelName: String(match.descricao_modelo ?? input.modelName ?? ''),
+      brand: match.descricao_marca ? String(match.descricao_marca) : undefined,
+      fipeValue: 0, // model search has no FIPE; agent must confirm value or use plate
+      codigoTipoVeiculo: match.codigo_tipo_veiculo ? String(match.codigo_tipo_veiculo) : config.sgaDefaultTipoVeiculo,
     }
   }
 
@@ -117,52 +170,89 @@ export class SgaClient {
     vehicleValue: number
     hasTracker: boolean
     coverages: string[]
+    codigoRegional?: number
+    codigoTipoVeiculo?: string
   }): Promise<SgaQuote> {
     const data = await this.request<any>({
       method: 'POST',
-      path: '/quotes/simulate',
+      path: '/buscar/rateio-medio',
       body: {
-        vehicle_value: input.vehicleValue,
-        has_tracker: input.hasTracker,
-        coverages: input.coverages,
+        valor_fipe: input.vehicleValue,
+        codigo_regional: input.codigoRegional ?? config.sgaDefaultRegional,
+        codigo_tipo_veiculo: input.codigoTipoVeiculo ?? config.sgaDefaultTipoVeiculo,
+        quantidade_meses_media: 3,
       },
     })
 
     return {
-      monthlyAmount: Number(data.monthlyAmount ?? data.monthly_amount ?? data.amount ?? 0),
-      vehicleValue: Number(data.vehicleValue ?? data.vehicle_value ?? input.vehicleValue),
-      coverages: Array.isArray(data.coverages) ? data.coverages.map(String) : input.coverages,
-      hasTracker: Boolean(data.hasTracker ?? data.has_tracker ?? input.hasTracker),
-      quoteId: data.quoteId ? String(data.quoteId) : data.quote_id ? String(data.quote_id) : undefined,
+      monthlyAmount: normalizeMoney(data.valor_rateio_medio ?? data.valor ?? 0),
+      vehicleValue: input.vehicleValue,
+      coverages: input.coverages,
+      hasTracker: input.hasTracker,
     }
   }
 
   async getFinancialInvoice(input: { cpf: string; plate: string }): Promise<{ invoices: SgaInvoice[] }> {
     const data = await this.request<any>({
-      method: 'GET',
-      path: '/financial/invoices',
-      query: {
-        cpf: normalizeCpf(input.cpf),
-        plate: normalizePlate(input.plate),
+      method: 'POST',
+      path: '/listar/boleto/periodo',
+      body: {
+        cpf_associado: normalizeCpf(input.cpf),
+        codigo_situacao_boleto: config.sgaBoletoOpenStatusCode,
       },
     })
 
-    const rawInvoices = Array.isArray(data) ? data : data.invoices ?? data.items ?? []
+    const plate = normalizePlate(input.plate)
+    const rawInvoices: any[] = Array.isArray(data) ? data : data.boletos ?? data.invoices ?? []
+    return { invoices: rawInvoices.map((invoice) => mapInvoice(invoice, plate)) }
+  }
+
+  /** Mass listing of boletos in a due-date window (paginated) — used by the active billing runner. */
+  async listBoletosByPeriod(input: {
+    dueDateStart: string // dd/mm/yyyy
+    dueDateEnd: string // dd/mm/yyyy
+    situationCode?: number
+    pageSize?: number
+    pageStart?: number
+  }): Promise<SgaBoletoListItem[]> {
+    const data = await this.request<any>({
+      method: 'POST',
+      path: '/listar/boleto-associado/periodo',
+      body: {
+        data_vencimento_inicial: input.dueDateStart,
+        data_vencimento_final: input.dueDateEnd,
+        codigo_situacao_boleto: input.situationCode ?? config.sgaBoletoOpenStatusCode,
+        quantidade_por_pagina: input.pageSize ?? config.billingPageSize,
+        inicio_paginacao: input.pageStart ?? 0,
+      },
+    })
+
+    const rawInvoices: any[] = Array.isArray(data) ? data : data.boletos ?? []
+    return rawInvoices.map((invoice) => ({
+      ...mapInvoice(invoice),
+      associadoCode: invoice.codigo_associado != null ? String(invoice.codigo_associado) : undefined,
+      associadoName: invoice.nome_associado ? String(invoice.nome_associado) : undefined,
+      cpf: invoice.cpf ? normalizeCpf(String(invoice.cpf)) : undefined,
+      phone: invoice.celular ? String(invoice.celular).replace(/\D/g, '') : undefined,
+      email: invoice.email ? String(invoice.email) : undefined,
+    }))
+  }
+
+  async getFinancialStatusByPlate(plate: string): Promise<SgaFinancialStatus> {
+    const data = await this.request<any>({
+      method: 'GET',
+      path: `/buscar/situacao-financeira-veiculo/${encodeURIComponent(normalizePlate(plate))}`,
+    })
+
+    const rawStatus = String(data.situacao_financeira ?? data.descricao_situacao_financeira ?? '')
     return {
-      invoices: rawInvoices.map((invoice: any) => ({
-        invoiceId: String(invoice.invoiceId ?? invoice.invoice_id ?? invoice.id ?? ''),
-        dueDate: String(invoice.dueDate ?? invoice.due_date ?? invoice.vencimento ?? ''),
-        amount: Number(invoice.amount ?? invoice.valor ?? 0),
-        status: String(invoice.status ?? 'open'),
-        boletoPdfUrl: invoice.boletoPdfUrl ?? invoice.boleto_pdf_url ?? invoice.pdf_url,
-        barcode: invoice.barcode ?? invoice.linha_digitavel,
-        pixCopyPaste: invoice.pixCopyPaste ?? invoice.pix_copy_paste ?? invoice.pix,
-        contractPlate: invoice.contractPlate
-          ? normalizePlate(String(invoice.contractPlate))
-          : invoice.contract_plate
-            ? normalizePlate(String(invoice.contract_plate))
-            : undefined,
-      })),
+      cpf: data.cpf ? String(data.cpf) : undefined,
+      name: data.nome ? String(data.nome) : undefined,
+      plate: data.placa ? String(data.placa) : plate,
+      vehicleCode: data.codigo_veiculo ? String(data.codigo_veiculo) : undefined,
+      modelName: data.descricao_modelo ? String(data.descricao_modelo) : undefined,
+      isDelinquent: rawStatus.toUpperCase().includes('INADIMPLENTE'),
+      rawStatus,
     }
   }
 
@@ -175,66 +265,103 @@ export class SgaClient {
     hasThirdParty: boolean
     thirdPartyData?: Record<string, unknown>
   }): Promise<SgaClaim> {
+    const thirdParty = input.hasThirdParty
+      ? `\nTerceiros: ${JSON.stringify(input.thirdPartyData ?? {})}`
+      : '\nSem terceiros envolvidos.'
+    const descricao = `Data/hora: ${input.dateTime}\nLocal: ${input.location}\nRelato: ${input.description}${thirdParty}`
+
     const data = await this.request<any>({
       method: 'POST',
-      path: '/claims',
+      path: '/cadastrar/historico-atendimento-associado',
       body: {
         cpf: normalizeCpf(input.cpf),
-        plate: normalizePlate(input.plate),
-        date_time: input.dateTime,
-        location: input.location,
-        description: input.description,
-        has_third_party: input.hasThirdParty,
-        third_party_data: input.thirdPartyData ?? null,
+        codigo_status_atendimento: config.sgaClaimStatusCode,
+        codigo_tipo_atendimento: config.sgaClaimTypeCode,
+        codigo_departamento: config.sgaSinistroDeptCode,
+        titulo: `Sinistro - ${normalizePlate(input.plate)}`,
+        descricao,
+        placa: normalizePlate(input.plate),
       },
     })
 
+    const claimId = String(data.codigo_historico_atendimento ?? data.claimId ?? data.id ?? '')
     return {
-      claimId: String(data.claimId ?? data.claim_id ?? data.id ?? ''),
-      protocol: String(data.protocol ?? data.protocolo ?? data.claimId ?? data.claim_id ?? ''),
-      status: String(data.status ?? 'created'),
+      claimId,
+      protocol: String(data.protocolo ?? claimId),
+      status: String(data.mensagem ?? data.status ?? 'created'),
     }
   }
 
   async uploadClaimDocument(input: {
     claimId: string
     docType: string
-    file: Blob
+    base64?: string
+    link?: string
     filename: string
-    mimeType: string
-  }): Promise<{ uploaded: true; documentId?: string }> {
-    const formData = new FormData()
-    formData.set('claim_id', input.claimId)
-    formData.set('doc_type', input.docType)
-    formData.set('file', input.file, input.filename)
+  }): Promise<{ uploaded: boolean; documentId?: string }> {
+    const foto: Record<string, unknown> = { nome_arquivo: input.filename }
+    if (input.link) foto.link = input.link
+    if (input.base64) foto.binario = input.base64
 
     const data = await this.request<any>({
       method: 'POST',
-      path: `/claims/${encodeURIComponent(input.claimId)}/documents`,
-      formData,
-    })
-
-    return {
-      uploaded: true,
-      documentId: data.documentId ? String(data.documentId) : data.document_id ? String(data.document_id) : undefined,
-    }
-  }
-
-  async getClaimStatus(input: { claimId?: string; cpf?: string }): Promise<SgaClaimStatus> {
-    const data = await this.request<any>({
-      method: 'GET',
-      path: '/claims/status',
-      query: {
-        claimId: input.claimId,
-        cpf: input.cpf ? normalizeCpf(input.cpf) : undefined,
+      path: '/historico-atendimento-associado/foto/cadastrar',
+      body: {
+        codigo_atendimento: Number(input.claimId) || input.claimId,
+        foto: [foto],
       },
     })
 
-    return {
-      claimId: String(data.claimId ?? data.claim_id ?? input.claimId ?? ''),
-      status: String(data.status ?? ''),
-      description: data.description ? String(data.description) : data.descricao ? String(data.descricao) : undefined,
-      updatedAt: data.updatedAt ? String(data.updatedAt) : data.updated_at ? String(data.updated_at) : undefined,
+    const result = Array.isArray(data) ? data[0] : data
+    const uploaded = String(result?.situacao ?? '').toLowerCase().includes('inserido')
+    return { uploaded, documentId: result?.nome_arquivo ? String(result.nome_arquivo) : undefined }
+  }
+
+  async getClaimStatus(input: { claimId?: string; plate?: string }): Promise<SgaClaimStatus> {
+    if (input.plate?.trim()) {
+      const data = await this.request<any>({
+        method: 'GET',
+        path: `/listar/evento-veiculo/${encodeURIComponent(normalizePlate(input.plate))}`,
+      })
+      const eventos: any[] = data.eventos ?? (Array.isArray(data) ? data : [])
+      const evento = eventos[0]
+      if (!evento) throw new SgaIntegrationError('Nenhum evento encontrado para a placa', 406, 'sga-event-not-found')
+      return mapEvento(evento)
+    }
+
+    const data = await this.request<any>({
+      method: 'POST',
+      path: '/listar/evento',
+      body: { protocolo: input.claimId },
+    })
+    const evento = Array.isArray(data) ? data[0] : data
+    if (!evento) throw new SgaIntegrationError('Evento não encontrado', 406, 'sga-event-not-found')
+    return mapEvento(evento)
+  }
+
+  // ── Auth + low-level request ──
+
+  private async authenticate(): Promise<string> {
+    if (cachedToken) return cachedToken
+    if (authPromise) return authPromise
+
+    authPromise = (async () => {
+      const data = await this.request<any>({
+        method: 'POST',
+        path: '/usuario/autenticar',
+        skipAuth: true,
+        body: { usuario: config.sgaUsuario, senha: config.sgaSenha },
+      })
+      const token = String(data.token_usuario ?? data.token ?? '')
+      if (!token) throw new SgaIntegrationError('Autenticação SGA não retornou token_usuario', undefined, 'sga-auth-failed')
+      cachedToken = token
+      return token
+    })()
+
+    try {
+      return await authPromise
+    } finally {
+      authPromise = null
     }
   }
 
@@ -243,23 +370,20 @@ export class SgaClient {
       throw new SgaIntegrationError('Circuit breaker aberto para SGA', undefined, 'sga-circuit-open')
     }
 
+    const token = options.skipAuth ? config.sgaApiToken : await this.authenticate()
+
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), config.sgaTimeoutMs)
 
     try {
       const url = this.buildUrl(options.path, options.query)
-      const headers: Record<string, string> = {}
-      if (config.sgaApiToken.trim()) {
-        headers.Authorization = `Bearer ${config.sgaApiToken}`
-      }
-      if (!options.formData) {
-        headers['Content-Type'] = 'application/json'
-      }
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token.trim()) headers.Authorization = `Bearer ${token}`
 
       const response = await fetch(url, {
         method: options.method,
         headers,
-        body: options.formData ?? (options.body ? JSON.stringify(options.body) : undefined),
+        body: options.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       })
 
@@ -267,6 +391,10 @@ export class SgaClient {
         const text = await response.text().catch(() => '')
         if (response.status >= 500 || response.status === 408 || response.status === 429) {
           circuitBreaker.recordFailure()
+        }
+        // A stale token can cause 401/403 — drop it so the next call re-authenticates.
+        if ((response.status === 401 || response.status === 403) && !options.skipAuth) {
+          cachedToken = null
         }
         throw new SgaIntegrationError(`SGA ${options.method} ${options.path} retornou ${response.status}: ${text}`, response.status)
       }
@@ -295,10 +423,67 @@ export class SgaClient {
   }
 }
 
+// ── Mappers + normalizers ──
+
+function mapVehicle(data: any, fallbackPlate?: string): SgaVehicle {
+  return {
+    plate: data.placa ? normalizePlate(String(data.placa)) : fallbackPlate,
+    modelName: String(data.modelo ?? data.descricao_modelo ?? data.modelName ?? ''),
+    brand: data.marca ? String(data.marca) : undefined,
+    year: data.ano_modelo ? Number(data.ano_modelo) : data.ano_fabricacao ? Number(data.ano_fabricacao) : undefined,
+    fipeValue: normalizeMoney(data.valor_fipe ?? data.valor_fixo ?? 0),
+    codigoRegional: data.codigo_regional ? Number(data.codigo_regional) : undefined,
+    codigoTipoVeiculo: data.codigo_tipo_veiculo ? String(data.codigo_tipo_veiculo) : undefined,
+    hasActiveContract: data.descricao_situacao
+      ? String(data.descricao_situacao).toUpperCase().includes('ATIVO')
+      : undefined,
+  }
+}
+
+function mapInvoice(invoice: any, wantedPlate?: string): SgaInvoice {
+  const veiculos: any[] = Array.isArray(invoice.veiculos) ? invoice.veiculos : []
+  const plates = veiculos.map((v) => (v.placa ? normalizePlate(String(v.placa)) : '')).filter(Boolean)
+  const contractPlate = wantedPlate && plates.includes(wantedPlate) ? wantedPlate : plates[0]
+
+  return {
+    invoiceId: String(invoice.nosso_numero ?? invoice.invoiceId ?? invoice.id ?? ''),
+    dueDate: String(invoice.data_vencimento ?? invoice.dueDate ?? ''),
+    amount: normalizeMoney(invoice.valor_boleto_multa_mora ?? invoice.valor_boleto ?? invoice.amount ?? 0),
+    status: String(invoice.situacao_boleto ?? invoice.descricao_situacao_boleto ?? invoice.status ?? 'open'),
+    boletoPdfUrl: invoice.link_boleto ?? invoice.boletoPdfUrl ?? undefined,
+    barcode: invoice.linha_digitavel ?? invoice.barcode ?? undefined,
+    pixCopyPaste: invoice.pix?.copia_cola ?? invoice.pix_copia_cola ?? invoice.pixCopyPaste ?? undefined,
+    contractPlate,
+    daysOverdue: invoice.quantidade_dias_vencidos != null ? Number(invoice.quantidade_dias_vencidos) : undefined,
+  }
+}
+
+function mapEvento(evento: any): SgaClaimStatus {
+  return {
+    claimId: String(evento.protocolo ?? evento.codigo_evento ?? ''),
+    status: String(evento.situacao_evento ?? evento.status ?? ''),
+    description: evento.descricao_motivo ? String(evento.descricao_motivo) : undefined,
+    updatedAt: evento.data_evento ? String(evento.data_evento) : undefined,
+  }
+}
+
 export function normalizeCpf(cpf: string): string {
   return cpf.replace(/\D/g, '')
 }
 
 export function normalizePlate(plate: string): string {
   return plate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+}
+
+/** Parses Hinova money strings ("R$ 189,50", "1.234,56", "145.00", 145) into a number. */
+export function normalizeMoney(value: unknown): number {
+  if (typeof value === 'number') return value
+  let s = String(value ?? '').replace(/[^\d.,-]/g, '')
+  if (!s) return 0
+  if (s.includes(',')) {
+    // Brazilian format: dots are thousand separators, comma is decimal
+    s = s.replace(/\./g, '').replace(',', '.')
+  }
+  const n = Number(s)
+  return Number.isFinite(n) ? n : 0
 }

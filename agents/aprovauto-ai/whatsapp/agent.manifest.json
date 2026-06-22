@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "name": "AprovaAuto AI",
   "slug": "aprovauto-ai",
-  "level": "transactional",
+  "level": "orchestrator",
   "capabilities": [
     "faq",
     "rag",
@@ -28,6 +28,15 @@
         "SGA_BASE_URL",
         "SGA_API_TOKEN"
       ]
+    },
+    {
+      "id": "custom.crm",
+      "config": {
+        "contract": "spec/crm.openapi.json",
+        "auth": "bearer",
+        "mock": true
+      },
+      "requiredEnv": []
     }
   ],
   "publisher": {
@@ -45,6 +54,7 @@
   "notes": [
     "Manifest é a fonte de verdade para level/capabilities/plugins/publisher.",
     "Níveis: informational | transactional | orchestrator",
-    "Use transactional para ferramentas que realizam side-effects."
+    "Use transactional para ferramentas que realizam side-effects.",
+    "custom.crm é mock-first (config.mock=true): requiredEnv vazio até a doc real do CRM chegar. Ao integrar o CRM real, declarar CRM_BASE_URL e CRM_BEARER_TOKEN em requiredEnv."
   ]
 }

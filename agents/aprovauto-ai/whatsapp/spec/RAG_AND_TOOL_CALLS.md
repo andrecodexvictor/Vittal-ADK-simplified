@@ -25,6 +25,15 @@ bun run rag:vectorize --agent aprovauto-ai
   - Nunca usar apenas CPF.
   - Se retornar `authorized: false`, não expor fatura, Pix, boleto ou linha digitável.
 
+### CRM (mock-first — `custom.crm`)
+- `tool_crm_get_contact`
+  - Use com `phone` (default: telefone do remetente) ou `cpf` para recuperar contexto e não repetir perguntas.
+- `tool_crm_upsert_lead`
+  - Use no fluxo comercial após qualificar; obrigatório `name` + `phone`. Evolua `stage` (`qualifying`→`handoff_sales`).
+- `tool_crm_log_interaction`
+  - Use antes de encaminhar lead qualificado ao consultor; envie um resumo estruturado e o `outcome`.
+- Falha de CRM retorna `handoffRequired: true` (não expor erro técnico).
+
 ### Sinistro
 - `tool_sga_create_claim`
   - Use após coletar CPF, placa, data/hora, local, descrição e informação sobre terceiros.
@@ -32,7 +41,7 @@ bun run rag:vectorize --agent aprovauto-ai
   - Use para CNH, CRLV e avarias depois de existir `claimId`.
   - A mídia atual do WhatsApp é enviada ao SGA por `multipart/form-data`.
 - `tool_sga_get_claim_status`
-  - Use com `claimId` ou CPF quando o usuário pedir andamento.
+  - Use com `claimId` (protocolo) ou `plate` quando o usuário pedir andamento.
 
 ## Guardrails Necessários
 - LGPD financeiro: CPF + placa antes de qualquer dado financeiro.
