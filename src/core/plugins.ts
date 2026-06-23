@@ -147,10 +147,44 @@ const SgaGetClaimStatusInputSchema = z
     message: 'Informe claimId (protocolo) ou plate',
   })
 
+// Erros de negócio recuperáveis NÃO devem acionar atendente humano: "modelo/veículo
+// não encontrado", validação de entrada, ou rota opcional não liberada (406 "Rota não
+// permitida"). Nesses casos o agente segue sozinho (pede a placa, responde pela FAQ).
+// Só falhas de infraestrutura (5xx, timeout, circuit aberto, auth) disparam handoff.
+const SGA_SOFT_CODES = new Set([
+  'sga-vehicle-not-found',
+  'sga-model-not-found',
+  'sga-model-query-empty',
+  'sga-event-not-found',
+])
+
+function describeSoftSgaError(err: unknown): { soft: boolean; userMessage: string; code: string } | null {
+  if (!(err instanceof SgaIntegrationError)) return null
+  const isSoft = SGA_SOFT_CODES.has(err.code) || err.status === 404 || err.status === 406 || err.status === 422
+  if (!isSoft) return null
+  // Códigos de negócio já trazem mensagem pronta para o cliente; demais (ex.: rota
+  // não liberada) recebem um fallback genérico, sem expor detalhe técnico/handoff.
+  const userMessage = SGA_SOFT_CODES.has(err.code)
+    ? err.message
+    : 'Não consegui consultar essa informação no sistema agora, mas posso te ajudar com o que tenho aqui. Como prefere seguir?'
+  return { soft: true, userMessage, code: err.code }
+}
+
 async function withSgaFailureHandoff<T>(ctx: any, operation: string, execute: () => Promise<T>): Promise<T> {
   try {
     return await execute()
   } catch (err) {
+    const soft = describeSoftSgaError(err)
+    if (soft) {
+      logger.info({ operation, code: soft.code }, 'SGA soft error — recuperável, sem handoff')
+      await ctx.services?.repository?.addLog?.(ctx.executionId, {
+        level: 'warn',
+        message: `SGA soft error: ${operation}`,
+        data: { code: soft.code, error: err instanceof Error ? err.message : String(err) },
+      })
+      return { error: soft.code || 'sga_not_found', handoffRequired: false, userMessage: soft.userMessage } as T
+    }
+
     const isSgaError = err instanceof SgaIntegrationError
     logger.error({ err, operation }, 'SGA tool failed')
 

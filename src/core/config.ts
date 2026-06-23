@@ -44,6 +44,11 @@ const configSchema = z.object({
   // Operational codes — valores reais descobertos via scripts/sga-discover.ts (jun/2026)
   sgaDefaultRegional: z.coerce.number().default(1), // regional 1 = APROVAUTO (ABB)
   sgaDefaultTipoVeiculo: z.string().default('1'),
+  // Busca por nome de modelo: /modelo/listar não tem filtro server-side (8k+ modelos
+  // em ~44 páginas), então paginamos e pontuamos por tokens. Limita o nº de páginas
+  // varridas por cotação (early-exit no match forte mantém o caso comum barato).
+  sgaModelSearchPageSize: z.coerce.number().default(200), // máx. permitido pela API
+  sgaModelSearchMaxPages: z.coerce.number().default(50),
   sgaClaimStatusCode: z.coerce.number().default(3), // status-atendimento "EM ABERTO" = 3
   sgaClaimTypeCode: z.coerce.number().default(6), // tipo-atendimento "SINISTRO - ABERTURA" = 6
   sgaSinistroDeptCode: z.coerce.number().default(0), // departamento: rota não liberada no token ainda
@@ -137,6 +142,8 @@ function loadConfig() {
     sgaMock: process.env.SGA_MOCK,
     sgaDefaultRegional: process.env.SGA_DEFAULT_REGIONAL,
     sgaDefaultTipoVeiculo: process.env.SGA_DEFAULT_TIPO_VEICULO,
+    sgaModelSearchPageSize: process.env.SGA_MODEL_SEARCH_PAGE_SIZE,
+    sgaModelSearchMaxPages: process.env.SGA_MODEL_SEARCH_MAX_PAGES,
     sgaClaimStatusCode: process.env.SGA_CLAIM_STATUS_CODE,
     sgaClaimTypeCode: process.env.SGA_CLAIM_TYPE_CODE,
     sgaSinistroDeptCode: process.env.SGA_SINISTRO_DEPT_CODE,

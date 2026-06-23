@@ -162,17 +162,46 @@ export class SgaClient {
       return mapVehicle(vehicle, plate)
     }
 
-    // Search by model name → /modelo/listar then map the best match
-    const models = await this.request<any>({
-      method: 'POST',
-      path: '/modelo/listar',
-      body: { situacao: 'ativo', inicio_paginacao: 0, quantidade_por_pagina: 50 },
-    })
-    const list: any[] = Array.isArray(models) ? models : models.modelos ?? []
-    const wanted = (input.modelName ?? '').toLowerCase()
-    const match =
-      list.find((m) => `${m.descricao_modelo ?? ''}`.toLowerCase().includes(wanted)) ?? list[0]
-    if (!match) throw new SgaIntegrationError('Modelo não encontrado', 406, 'sga-model-not-found')
+    // Search by model name. /modelo/listar has NO server-side filter (8k+ models
+    // across dozens of pages), so we paginate and score each model by how many of
+    // the query tokens its description contains, keeping the best. Early-exit when a
+    // model matches every token. We NEVER fall back to "first item": no confident
+    // match → honest error so the agent asks for the plate (accurate FIPE anyway).
+    const tokens = tokenizeModelQuery(input.modelName ?? '')
+    if (tokens.length === 0) {
+      throw new SgaIntegrationError('Informe marca e modelo do veículo', 422, 'sga-model-query-empty')
+    }
+
+    const pageSize = config.sgaModelSearchPageSize
+    let best: { item: any; score: number } | null = null
+    for (let page = 0; page < config.sgaModelSearchMaxPages; page++) {
+      const models = await this.request<any>({
+        method: 'POST',
+        path: '/modelo/listar',
+        body: { situacao: 'ativo', inicio_paginacao: page * pageSize, quantidade_por_pagina: pageSize },
+      })
+      const list: any[] = Array.isArray(models) ? models : models.modelos ?? []
+      const totalPages = Number(models?.numero_paginas ?? 1)
+
+      for (const item of list) {
+        const score = scoreModelMatch(tokens, item)
+        if (score > (best?.score ?? 0)) best = { item, score }
+      }
+
+      // Strong match (every token present) → stop; otherwise keep paging until the
+      // catalog ends, a short page signals the last page, or we hit the cap.
+      if ((best && best.score >= tokens.length) || list.length < pageSize || page + 1 >= totalPages) break
+    }
+
+    if (!best || best.score === 0) {
+      throw new SgaIntegrationError(
+        `Não encontrei o modelo "${input.modelName}". Me envie a placa para cotar com precisão.`,
+        404,
+        'sga-model-not-found',
+      )
+    }
+
+    const match = best.item
     return {
       modelName: String(match.descricao_modelo ?? input.modelName ?? ''),
       brand: match.descricao_marca ? String(match.descricao_marca) : undefined,
@@ -546,6 +575,30 @@ function mapEvento(evento: any): SgaClaimStatus {
     description: evento.descricao_motivo ? String(evento.descricao_motivo) : undefined,
     updatedAt: evento.data_evento ? String(evento.data_evento) : undefined,
   }
+}
+
+/**
+ * Breaks a free-text vehicle query ("Chery Tiggo 5X 1.5 Turbo 2024") into the
+ * distinctive tokens used to score a model: lowercased, accent-stripped, with
+ * 4-digit model years (19xx/20xx) and 1-char noise dropped. Tokens like "5x",
+ * "1.5" and "turbo" are kept — they help disambiguate trims.
+ */
+export function tokenizeModelQuery(query: string): string[] {
+  return query
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .split(/[^a-z0-9.]+/)
+    .filter((t) => t.length > 1 && !/^(19|20)\d{2}$/.test(t))
+}
+
+/** Counts how many query tokens appear in a model's description+brand. */
+function scoreModelMatch(tokens: string[], item: any): number {
+  const haystack = `${item?.descricao_marca ?? ''} ${item?.descricao_modelo ?? ''}`
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+  return tokens.reduce((score, token) => (haystack.includes(token) ? score + 1 : score), 0)
 }
 
 export function normalizeCpf(cpf: string): string {
