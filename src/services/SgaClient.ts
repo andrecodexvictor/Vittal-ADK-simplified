@@ -339,6 +339,20 @@ export class SgaClient {
     return mapEvento(evento)
   }
 
+  /**
+   * Thin public escape hatch for the discovery script (scripts/sga-discover.ts):
+   * authenticates (two-step) and issues a raw call to any endpoint not yet wrapped
+   * by a dedicated method. Returns the parsed JSON as-is. Not used in runtime flows.
+   */
+  async requestRaw<T = unknown>(
+    method: 'GET' | 'POST',
+    path: string,
+    body?: unknown,
+    query?: RequestOptions['query'],
+  ): Promise<T> {
+    return this.request<T>({ method, path, body, query })
+  }
+
   // ── Auth + low-level request ──
 
   private async authenticate(): Promise<string> {

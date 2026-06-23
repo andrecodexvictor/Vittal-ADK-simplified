@@ -26,6 +26,9 @@ logs
 .rag-cache/
 **/.rag-cache/
 
+# SGA discovery output (raw API responses — may contain associado PII)
+**/spec/_discovery/
+
 # IDE configs
 .vscode/
 .idea/

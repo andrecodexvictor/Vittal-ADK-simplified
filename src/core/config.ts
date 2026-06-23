@@ -41,13 +41,15 @@ const configSchema = z.object({
   sgaMaxUploadBytes: z.coerce.number().default(10 * 1024 * 1024),
   // Test switch: intercept SGA traffic with the deterministic mock (no real ERP calls)
   sgaMock: z.preprocess((val) => val === 'true', z.boolean().default(false)),
-  // Operational codes (from the AprovaAuto SGA back-office)
-  sgaDefaultRegional: z.coerce.number().default(0),
+  // Operational codes — valores reais descobertos via scripts/sga-discover.ts (jun/2026)
+  sgaDefaultRegional: z.coerce.number().default(1), // regional 1 = APROVAUTO (ABB)
   sgaDefaultTipoVeiculo: z.string().default('1'),
-  sgaClaimStatusCode: z.coerce.number().default(0),
-  sgaClaimTypeCode: z.coerce.number().default(0),
-  sgaSinistroDeptCode: z.coerce.number().default(0),
-  sgaBoletoOpenStatusCode: z.coerce.number().default(2),
+  sgaClaimStatusCode: z.coerce.number().default(3), // status-atendimento "EM ABERTO" = 3
+  sgaClaimTypeCode: z.coerce.number().default(6), // tipo-atendimento "SINISTRO - ABERTURA" = 6
+  sgaSinistroDeptCode: z.coerce.number().default(0), // departamento: rota não liberada no token ainda
+  sgaBoletoOpenStatusCode: z.coerce.number().default(2), // situacao-boleto "ABERTO" = 2 (confirmado)
+  // Mapa codigo_regional → unidade/equipe de transbordo (M2). JSON string; vazio = sem roteamento direcionado.
+  sgaRegionalUnitMap: z.string().default(''),
 
   // Billing / cobrança ativa (régua)
   billingOverdueGraceDays: z.coerce.number().default(2), // D+1 manual settlement safety window
@@ -138,6 +140,7 @@ function loadConfig() {
     sgaClaimTypeCode: process.env.SGA_CLAIM_TYPE_CODE,
     sgaSinistroDeptCode: process.env.SGA_SINISTRO_DEPT_CODE,
     sgaBoletoOpenStatusCode: process.env.SGA_BOLETO_OPEN_STATUS_CODE,
+    sgaRegionalUnitMap: process.env.SGA_REGIONAL_UNIT_MAP,
     billingOverdueGraceDays: process.env.BILLING_OVERDUE_GRACE_DAYS,
     billingMaxPages: process.env.BILLING_MAX_PAGES,
     billingPageSize: process.env.BILLING_PAGE_SIZE,
@@ -217,6 +220,7 @@ function loadConfig() {
         sgaClaimTypeCode: 20,
         sgaSinistroDeptCode: 30,
         sgaBoletoOpenStatusCode: 2,
+        sgaRegionalUnitMap: '',
         billingOverdueGraceDays: 2,
         billingMaxPages: 20,
         billingPageSize: 3000,

@@ -4,6 +4,50 @@
 > Base: endpoints já chamados pelo `src/services/SgaClient.ts` + módulos da Fase 3 (M2 sinistro, M3 cobrança ativa, M5 comercial) já especificados.
 > **Princípio:** menor privilégio (LGPD). Marcar só o necessário.
 
+---
+
+## 🔎 Resultado da descoberta na API real (jun/2026)
+
+Rodado `scripts/sga-discover.ts` contra a API real com o token atual. O SGA retorna
+**406 "Rota não permitida. É necessário a liberação da rota pelo cliente"** quando o
+path existe mas a rota **não está habilitada no token** (tela: Área Cliente → APIs →
+Gerenciar APIs → Tópico X → marcar o endpoint).
+
+### ✅ Já liberados no token (funcionando)
+Runtime do agente todo OK: `veiculo/buscar-por-permissao`, `modelo/listar`,
+`buscar/rateio-medio`, `buscar/situacao-financeira-veiculo`, `listar/boleto/periodo`,
+`listar/boleto-associado/periodo`, `listar/evento-veiculo`. **Catálogos:**
+`listar/status-atendimento/todos`, `listar/tipo-atendimento/todos`,
+`listar/situacao-boleto/todos`, `listar/regional/todos`.
+
+### 🔒 Falta o cliente liberar (path confirmado, retorna "não permitida")
+Necessárias para os opcionais e para M2 completo:
+
+| Tópico | Endpoint (nome na tela) | Path | Para quê |
+|---|---|---|---|
+| Atendimento | listar departamento | `GET /listar/departamento/todos` | resolver `SGA_SINISTRO_DEPT_CODE` |
+| Produto | listar grupo produto | `GET /listar/grupo-produto/todos` | catálogo de planos (M5/FAQ) |
+| Situação | listar por permissão | `GET /listar/situacao/todos` | interpretar status de forma estável |
+| Evento | listar situação | `GET /listar/situacao-evento/todos` | status de sinistro estável |
+| Vistoria | listar tipo | `GET /listar/tipo-vistoria/todos` | tipos de vistoria |
+
+> **`listar/vistoria` (período)** já está liberado (POST com `data_vistoria_inicial`/`data_vistoria_final`).
+> **`listar produto`** e **`listar produto vinculado`** (cobertura por placa, M2): path ainda não
+> confirmado (retornaram 404 = path errado). Confirmar nome exato com a Hinova OU habilitar o
+> Tópico Produto completo e re-rodar `sga-discover.ts`.
+
+### Códigos reais resolvidos (já no `.env`)
+| Variável | Valor | Origem |
+|---|---|---|
+| `SGA_CLAIM_STATUS_CODE` | **3** | status-atendimento "EM ABERTO" |
+| `SGA_CLAIM_TYPE_CODE` | **6** | tipo-atendimento "SINISTRO - ABERTURA" |
+| `SGA_BOLETO_OPEN_STATUS_CODE` | **2** | situacao-boleto "ABERTO" (`considerado_inadimplencia: Y`) |
+| `SGA_DEFAULT_REGIONAL` | **1** | regional "APROVAUTO (ABB)" |
+| `SGA_SINISTRO_DEPT_CODE` | **0** (pendente) | depende de liberar "listar departamento" |
+
+**Regionais disponíveis** (para montar `SGA_REGIONAL_UNIT_MAP`): 1/14 APROVAUTO (ABB),
+13 Tabela Antiga, 15 Aprove Autos, 2 Goiânia, 6 Norte Bahia, 3 Oeste, 4 Sudoeste Bahia.
+
 ## Estratégia de chave
 
 - **1 chave única** atende todo o escopo (o `SgaClient` usa um só `SGA_API_TOKEN`). **Começar assim.**
