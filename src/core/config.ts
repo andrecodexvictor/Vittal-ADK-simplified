@@ -39,6 +39,8 @@ const configSchema = z.object({
   sgaCircuitWindowMs: z.coerce.number().default(60_000),
   sgaCircuitOpenMs: z.coerce.number().default(120_000),
   sgaMaxUploadBytes: z.coerce.number().default(10 * 1024 * 1024),
+  // Test switch: intercept SGA traffic with the deterministic mock (no real ERP calls)
+  sgaMock: z.preprocess((val) => val === 'true', z.boolean().default(false)),
   // Operational codes (from the AprovaAuto SGA back-office)
   sgaDefaultRegional: z.coerce.number().default(0),
   sgaDefaultTipoVeiculo: z.string().default('1'),
@@ -129,6 +131,7 @@ function loadConfig() {
     sgaCircuitWindowMs: process.env.SGA_CIRCUIT_WINDOW_MS,
     sgaCircuitOpenMs: process.env.SGA_CIRCUIT_OPEN_MS,
     sgaMaxUploadBytes: process.env.SGA_MAX_UPLOAD_BYTES,
+    sgaMock: process.env.SGA_MOCK,
     sgaDefaultRegional: process.env.SGA_DEFAULT_REGIONAL,
     sgaDefaultTipoVeiculo: process.env.SGA_DEFAULT_TIPO_VEICULO,
     sgaClaimStatusCode: process.env.SGA_CLAIM_STATUS_CODE,
@@ -207,6 +210,7 @@ function loadConfig() {
         sgaCircuitWindowMs: 60000,
         sgaCircuitOpenMs: 120000,
         sgaMaxUploadBytes: 10 * 1024 * 1024,
+        sgaMock: true,
         sgaDefaultRegional: 9,
         sgaDefaultTipoVeiculo: '1',
         sgaClaimStatusCode: 10,

@@ -1,0 +1,3 @@
+[submodule "Reverse-API-scrapper-agent"]
+	path = Reverse-API-scrapper-agent
+	url = https://github.com/andrecodexvictor/Reverse-API-scrapper-agent

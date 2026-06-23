@@ -11,6 +11,15 @@ if (!agentDir) {
 }
 
 logger.info({ agentDir }, 'Inicializando agente a partir do diretório')
+
+// Test switch: when SGA_MOCK=true, intercept all SGA traffic with the deterministic
+// mock so the full agent runs end-to-end without touching the real Hinova ERP.
+if (config.sgaMock) {
+  const { installSgaMock } = await import('../scripts/lib/sga-mock')
+  installSgaMock(config.sgaBaseUrl)
+  logger.warn('⚠️  SGA_MOCK=true — usando mock determinístico do SGA (nenhuma chamada real ao ERP Hinova)')
+}
+
 const manifest = loadManifest(agentDir)
 
 // 2. Instantiate core ProcessMessage coordinator
