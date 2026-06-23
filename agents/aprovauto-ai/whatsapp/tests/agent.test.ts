@@ -135,6 +135,7 @@ describe('AprovaAuto SGA tools (Hinova v2 real endpoints)', () => {
         'tool_sga_create_claim',
         'tool_sga_upload_claim_document',
         'tool_sga_get_claim_status',
+        'tool_sga_list_products',
       ]),
     )
   })
@@ -259,6 +260,52 @@ describe('AprovaAuto SGA tools (Hinova v2 real endpoints)', () => {
       const { ctx } = createToolContext()
       const output = await getTool('tool_sga_get_claim_status').execute({ plate: 'ABC1D23' }, ctx)
       expect(output).toMatchObject({ claimId: 'SIN-2026-9847', status: 'EM ANALISE' })
+    } finally {
+      restore()
+    }
+  })
+
+  test('lista grupos de produto (catálogo opcional Fase 3)', async () => {
+    const restore = mockSga((href) => {
+      expect(href).toContain('/listar/grupo-produto')
+      return Response.json([
+        { codigo_grupo_produto: '1', descricao: 'AUTO PROTEÇÃO', situacao: 'ATIVO' },
+        { codigo_grupo_produto: '2', descricao: 'MOTO PROTEÇÃO', situacao: 'ATIVO' },
+      ])
+    })
+
+    try {
+      const { ctx } = createToolContext()
+      const output = await getTool('tool_sga_list_products').execute({}, ctx)
+      expect(output.products).toHaveLength(2)
+      expect(output.products[0]).toMatchObject({ code: '1', description: 'AUTO PROTEÇÃO' })
+    } finally {
+      restore()
+    }
+  })
+
+  test('M2: bloqueia sinistro quando a placa não tem cobertura ativa (406)', async () => {
+    let claimCreated = false
+    const restore = mockSga((href) => {
+      if (href.includes('/veiculo/buscar-por-permissao/')) {
+        return Response.json({ mensagem: 'Não aceitável', error: ['Veículo não encontrado'] }, { status: 406 })
+      }
+      if (href.includes('/cadastrar/historico-atendimento-associado')) {
+        claimCreated = true
+        return Response.json({ mensagem: 'OK', codigo_historico_atendimento: '999' })
+      }
+      return Response.json({})
+    })
+
+    try {
+      const { ctx } = createToolContext()
+      const output = await getTool('tool_sga_create_claim').execute(
+        { cpf: '32165498799', plate: 'ZZZ9Z99', dateTime: '2026-06-22 08:30', location: 'Rua X', description: 'Colisão na traseira esquerda', hasThirdParty: false },
+        ctx,
+      )
+      expect(output.coverageActive).toBe(false)
+      expect(output.handoffRequired).toBe(true)
+      expect(claimCreated).toBe(false) // nunca chega a abrir o sinistro
     } finally {
       restore()
     }

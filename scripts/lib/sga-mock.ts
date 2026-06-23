@@ -75,6 +75,48 @@ export function sgaMock(href: string, init?: RequestInit): Response {
   if (href.includes('/listar/evento'))
     return j([{ protocolo: body?.protocolo ?? 'SIN-2026-9847', situacao_evento: 'EM ANALISE', data_evento: '2026-06-15', hora_evento: '09:00:00', envolvimento_terceiros: 'N', descricao_motivo: 'COLISÃO' }])
 
+  // ── Catálogos opcionais (Fase 3) — shapes espelham a API real (sga-discover.ts) ──
+  if (href.includes('/listar/grupo-produto'))
+    return j([
+      { codigo_grupo_produto: '1', descricao: 'AUTO PROTEÇÃO', situacao: 'ATIVO' },
+      { codigo_grupo_produto: '2', descricao: 'MOTO PROTEÇÃO', situacao: 'ATIVO' },
+    ])
+
+  if (href.includes('/listar/regional'))
+    return j([
+      { codigo_regional: '1', nome: 'APROVAUTO (ABB)', nome_fantasia: 'APROVAUTO', cidade: 'BARREIRAS', estado: 'BA', situacao: 'ATIVO' },
+      { codigo_regional: '2', nome: 'REGIONAL GOIANIA', nome_fantasia: 'APROVAUTO GO', cidade: 'GOIANIA', estado: 'GO', situacao: 'ATIVO' },
+    ])
+
+  if (href.includes('/listar/status-atendimento'))
+    return j([
+      { codigo_statusatendimentoassociado: '2', descricao: 'CONCLUÍDO', situacao: 'ATIVO' },
+      { codigo_statusatendimentoassociado: '3', descricao: 'EM ABERTO', situacao: 'ATIVO' },
+    ])
+
+  if (href.includes('/listar/tipo-atendimento'))
+    return j([
+      { codigo_tipoatendimento: '6', descricao: 'SINISTRO - ABERTURA', situacao: 'ATIVO' },
+      { codigo_tipoatendimento: '7', descricao: 'SINISTRO - EM ANDAMENTO', situacao: 'ATIVO' },
+    ])
+
+  if (href.includes('/listar/situacao-boleto'))
+    return j([
+      { codigo_situacaoboleto: '1', descricao: 'BAIXADO', considerado_inadimplencia: 'N', pago: 'SIM' },
+      { codigo_situacaoboleto: '2', descricao: 'ABERTO', considerado_inadimplencia: 'Y', pago: 'NÃO' },
+    ])
+
+  if (href.includes('/listar/tipo-vistoria'))
+    return j([
+      { codigo_tipovistoria: '1', descricao: 'VISTORIA DE ADESÃO' },
+      { codigo_tipovistoria: '2', descricao: 'VISTORIA DE SINISTRO' },
+    ])
+
+  if (href.includes('/listar/vistoria'))
+    return j([
+      { codigo_vistoria: '9001', placa: 'ABC1D23', codigo_tipovistoria: '2', situacao: 'AGENDADA', data_vistoria: '2026-06-20' },
+    ])
+
   return j({})
 }
 
@@ -83,7 +125,7 @@ export function installSgaMock(sgaBaseUrl: string): () => void {
   const sgaBase = sgaBaseUrl.replace(/\/$/, '')
   const isSgaUrl = (href: string) =>
     href.startsWith(sgaBase) ||
-    /\/(usuario\/autenticar|veiculo\/buscar|modelo\/listar|buscar\/(rateio-medio|situacao-financeira-veiculo)|listar\/(boleto|evento|boleto-associado)|cadastrar\/historico-atendimento|historico-atendimento-associado\/foto)/.test(
+    /\/(usuario\/autenticar|veiculo\/buscar|modelo\/listar|buscar\/(rateio-medio|situacao-financeira-veiculo)|listar\/(boleto|evento|boleto-associado|grupo-produto|regional|status-atendimento|tipo-atendimento|situacao-boleto|tipo-vistoria|vistoria)|cadastrar\/historico-atendimento|historico-atendimento-associado\/foto)/.test(
       href,
     )
 

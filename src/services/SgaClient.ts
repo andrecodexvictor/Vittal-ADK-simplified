@@ -75,6 +75,21 @@ export interface SgaClaimStatus {
   updatedAt?: string
 }
 
+export interface SgaProductGroup {
+  code: string
+  description: string
+  situacao?: string
+}
+
+export interface SgaRegional {
+  code: string
+  name: string
+  tradeName?: string
+  city?: string
+  state?: string
+  situacao?: string
+}
+
 export interface SgaFinancialStatus {
   cpf?: string
   name?: string
@@ -337,6 +352,58 @@ export class SgaClient {
     const evento = Array.isArray(data) ? data[0] : data
     if (!evento) throw new SgaIntegrationError('Evento não encontrado', 406, 'sga-event-not-found')
     return mapEvento(evento)
+  }
+
+  // ── Grupos opcionais (Fase 3) — paths confirmados via sga-discover.ts ──
+
+  /** Catálogo de grupos de produto (planos/coberturas) — GET /listar/grupo-produto/todos. */
+  async listProductGroups(): Promise<SgaProductGroup[]> {
+    const data = await this.request<any>({ method: 'GET', path: '/listar/grupo-produto/todos' })
+    const list: any[] = Array.isArray(data) ? data : (data.grupos ?? data.produtos ?? [])
+    return list.map((g) => ({
+      code: String(g.codigo_grupo_produto ?? g.codigo_grupoproduto ?? g.codigo ?? ''),
+      description: String(g.descricao ?? g.nome ?? ''),
+      situacao: g.situacao ? String(g.situacao) : undefined,
+    }))
+  }
+
+  /** Lista as regionais (codigo_regional → unidade) — GET /listar/regional/todos. */
+  async listRegionais(): Promise<SgaRegional[]> {
+    const data = await this.request<any>({ method: 'GET', path: '/listar/regional/todos' })
+    const list: any[] = Array.isArray(data) ? data : (data.regionais ?? [])
+    return list.map((r) => ({
+      code: String(r.codigo_regional ?? ''),
+      name: String(r.nome ?? ''),
+      tradeName: r.nome_fantasia ? String(r.nome_fantasia) : undefined,
+      city: r.cidade ? String(r.cidade) : undefined,
+      state: r.estado ? String(r.estado) : undefined,
+      situacao: r.situacao ? String(r.situacao) : undefined,
+    }))
+  }
+
+  /** Tipos de vistoria — GET /listar/tipo-vistoria/todos. */
+  async listInspectionTypes(): Promise<Array<{ code: string; description: string }>> {
+    const data = await this.request<any>({ method: 'GET', path: '/listar/tipo-vistoria/todos' })
+    const list: any[] = Array.isArray(data) ? data : (data.tipos ?? [])
+    return list.map((t) => ({
+      code: String(t.codigo_tipovistoria ?? t.codigo_tipo_vistoria ?? t.codigo ?? ''),
+      description: String(t.descricao ?? ''),
+    }))
+  }
+
+  /** Vistorias num intervalo (dd/mm/yyyy) — POST /listar/vistoria. */
+  async listInspectionsByPeriod(input: { startDate: string; endDate: string }): Promise<any[]> {
+    const data = await this.request<any>({
+      method: 'POST',
+      path: '/listar/vistoria',
+      body: {
+        data_vistoria_inicial: input.startDate,
+        data_vistoria_final: input.endDate,
+        inicio_paginacao: 0,
+        quantidade_por_pagina: 50,
+      },
+    })
+    return Array.isArray(data) ? data : (data.vistorias ?? [])
   }
 
   /**

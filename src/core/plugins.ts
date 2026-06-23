@@ -222,6 +222,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * M2 — resolve a unidade/equipe de transbordo a partir do codigo_regional do
+ * veículo, usando o mapa JSON SGA_REGIONAL_UNIT_MAP (ex.: {"1":"5577...","2":"5562..."}).
+ * Retorna undefined se o mapa estiver vazio/ inválido ou a regional não mapeada.
+ */
+function resolveRegionalUnit(codigoRegional?: number): string | undefined {
+  if (codigoRegional == null || !config.sgaRegionalUnitMap.trim()) return undefined
+  try {
+    const map = JSON.parse(config.sgaRegionalUnitMap) as Record<string, string>
+    const target = map[String(codigoRegional)]
+    return target ? String(target) : undefined
+  } catch {
+    logger.warn('SGA_REGIONAL_UNIT_MAP não é um JSON válido — roteamento regional ignorado')
+    return undefined
+  }
+}
+
 async function resolveUploadFile(input: z.infer<typeof SgaUploadClaimDocumentInputSchema>, ctx: any): Promise<{
   base64?: string
   link?: string
@@ -352,7 +369,28 @@ const sgaCreateClaimTool: Tool = {
   inputSchema: SgaCreateClaimInputSchema,
   execute: async (input, ctx) =>
     withSgaFailureHandoff(ctx, 'tool_sga_create_claim', async () => {
+      // M2: confirma contrato/cobertura ativa antes de abrir o sinistro (reusa
+      // /veiculo/buscar-por-permissao, já liberado). Evita abrir ocorrência para
+      // veículo sem cobertura.
+      let vehicle: Awaited<ReturnType<typeof sgaClient.searchVehicle>> | undefined
+      try {
+        vehicle = await sgaClient.searchVehicle({ plate: input.plate })
+      } catch (err) {
+        // /veiculo/buscar-por-permissao retorna 406 quando a placa não tem
+        // contrato/cobertura ativa (ou não existe) → não abrir sinistro.
+        if (err instanceof SgaIntegrationError && (err.status === 406 || err.code === 'sga-vehicle-not-found')) {
+          return {
+            coverageActive: false,
+            handoffRequired: true,
+            userMessage:
+              'Não localizei um contrato de proteção ativo para essa placa no nosso sistema. Vou transferir para a equipe confirmar a cobertura antes de abrir o sinistro.',
+          }
+        }
+        throw err
+      }
+
       const claim = await sgaClient.createClaim(input)
+      const routedUnit = resolveRegionalUnit(vehicle?.codigoRegional)
       await mergeAprovautoState(ctx, {
         claim: {
           ...input,
@@ -361,10 +399,12 @@ const sgaCreateClaimTool: Tool = {
           claimId: claim.claimId,
           protocol: claim.protocol,
           status: claim.status,
+          codigoRegional: vehicle?.codigoRegional,
+          routedUnit,
           expectedNextDoc: 'cnh',
         },
       })
-      return claim
+      return { ...claim, routedUnit }
     }),
 }
 
@@ -402,6 +442,21 @@ const sgaGetClaimStatusTool: Tool = {
   execute: async (input, ctx) =>
     withSgaFailureHandoff(ctx, 'tool_sga_get_claim_status', async () => {
       return sgaClient.getClaimStatus(input)
+    }),
+}
+
+// Opcional (Fase 3) — catálogo de planos/coberturas para dúvidas comerciais (M5/FAQ).
+const SgaListProductsInputSchema = z.object({})
+
+const sgaListProductsTool: Tool = {
+  name: 'tool_sga_list_products',
+  description:
+    'Lista os planos/grupos de produto (coberturas) disponíveis na AprovaAuto. Use para responder dúvidas sobre quais planos existem.',
+  inputSchema: SgaListProductsInputSchema,
+  execute: async (_input, ctx) =>
+    withSgaFailureHandoff(ctx, 'tool_sga_list_products', async () => {
+      const groups = await sgaClient.listProductGroups()
+      return { products: groups }
     }),
 }
 
@@ -536,6 +591,7 @@ export function getActiveTools(manifest: AgentManifest): Tool[] {
       sgaCreateClaimTool,
       sgaUploadClaimDocumentTool,
       sgaGetClaimStatusTool,
+      sgaListProductsTool,
     )
   }
 

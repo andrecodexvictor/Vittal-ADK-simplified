@@ -56,7 +56,14 @@ if (!config.openaiApiKey || config.openaiApiKey.startsWith('sk-verify')) {
   console.warn('⚠️  OPENAI_API_KEY ausente/placeholder no .env do agente — o LLM não responderá. Configure para testar de verdade.')
 }
 
-installSgaMock(config.sgaBaseUrl)
+// Respeita a switch SGA_MOCK: com SGA_MOCK=false o chat bate na API real da Hinova
+// (para testes com dados reais via túnel); caso contrário usa o mock determinístico.
+if (config.sgaMock) {
+  installSgaMock(config.sgaBaseUrl)
+  console.log('🧪 SGA_MOCK=true — usando mock determinístico (dados fictícios)')
+} else {
+  console.log('🌐 SGA_MOCK=false — usando a API real da Hinova (dados reais)')
+}
 
 const manifest = loadManifest(agentDir)
 const tools = getActiveTools(manifest)
