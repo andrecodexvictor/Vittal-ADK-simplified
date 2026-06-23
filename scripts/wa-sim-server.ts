@@ -51,6 +51,7 @@ const { getActiveTools } = await import('../src/core/plugins')
 const { OpenAIProvider } = await import('../src/services/OpenAIProvider')
 const { __resetSgaState } = await import('../src/services/SgaClient')
 const { installSgaMock } = await import('./lib/sga-mock')
+const { installCrmMock } = await import('./lib/crm-mock')
 
 if (!config.openaiApiKey || config.openaiApiKey.startsWith('sk-verify')) {
   console.warn('⚠️  OPENAI_API_KEY ausente/placeholder no .env do agente — o LLM não responderá. Configure para testar de verdade.')
@@ -63,6 +64,11 @@ if (config.sgaMock) {
   console.log('🧪 SGA_MOCK=true — usando mock determinístico (dados fictícios)')
 } else {
   console.log('🌐 SGA_MOCK=false — usando a API real da Hinova (dados reais)')
+}
+// CRM real ainda sem doc: com CRM_MOCK=true o lead/qualificação roda no mock.
+if (config.crmMock) {
+  installCrmMock(config.crmBaseUrl)
+  console.log('🧪 CRM_MOCK=true — CRM mockado (sem CRM real)')
 }
 
 const manifest = loadManifest(agentDir)

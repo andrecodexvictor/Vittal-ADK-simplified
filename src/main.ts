@@ -20,6 +20,14 @@ if (config.sgaMock) {
   logger.warn('⚠️  SGA_MOCK=true — usando mock determinístico do SGA (nenhuma chamada real ao ERP Hinova)')
 }
 
+// CRM ainda não tem API real (doc pendente). Com CRM_MOCK=true, intercepta o CRM
+// com mock determinístico — permite rodar leads/qualificação sem o CRM real.
+if (config.crmMock) {
+  const { installCrmMock } = await import('../scripts/lib/crm-mock')
+  installCrmMock(config.crmBaseUrl)
+  logger.warn('⚠️  CRM_MOCK=true — usando mock determinístico do CRM (sem CRM real)')
+}
+
 const manifest = loadManifest(agentDir)
 
 // 2. Instantiate core ProcessMessage coordinator

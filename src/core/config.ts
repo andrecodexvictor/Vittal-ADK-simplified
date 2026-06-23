@@ -59,6 +59,7 @@ const configSchema = z.object({
   billingReminderGroup: z.string().default(''),
 
   // CRM (Optional) — mock-first until the real CRM API doc arrives
+  crmMock: z.preprocess((val) => val === 'true', z.boolean().default(false)), // true = mock determinístico (sem CRM real)
   crmApiId: z.string().default(''),
   crmBearerToken: z.string().default(''),
   crmBaseUrl: z.string().url().default('https://crm.aprovauto.local'),
@@ -146,6 +147,7 @@ function loadConfig() {
     billingPageSize: process.env.BILLING_PAGE_SIZE,
     billingDryRun: process.env.BILLING_DRY_RUN,
     billingReminderGroup: process.env.BILLING_REMINDER_GROUP,
+    crmMock: process.env.CRM_MOCK,
     crmApiId: process.env.CRM_API_ID,
     crmBearerToken: process.env.CRM_BEARER_TOKEN,
     crmBaseUrl: process.env.CRM_BASE_URL,
@@ -226,6 +228,7 @@ function loadConfig() {
         billingPageSize: 3000,
         billingDryRun: true,
         billingReminderGroup: '',
+        crmMock: true,
         crmApiId: '',
         crmBearerToken: '',
         crmBaseUrl: 'https://crm.test.local',
