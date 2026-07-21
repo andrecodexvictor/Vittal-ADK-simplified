@@ -59,7 +59,7 @@ setInterval(() => {
     if (now >= until) antispamMutedUntil.delete(phone)
   }
   for (const [phone, hits] of antispamHits) {
-    if (hits.every((t) => now - t >= 60_000)) antispamHits.delete(phone)
+    if (hits.every((t) => now - t >= HOUR_MS)) antispamHits.delete(phone)
   }
 }, 30 * 60 * 1000)
 
@@ -67,10 +67,13 @@ setInterval(() => {
 const messageBuffers = new Map<string, string[]>()
 const messageTimers = new Map<string, Timer>()
 
-// Anti-spam: janela deslizante de 60s por remetente; excedeu → mute temporário.
+// Anti-spam: duas janelas deslizantes por remetente — rajada (60s) e sustentada (1h,
+// pega loops bot-a-bot lentos); excedeu qualquer uma → mute temporário.
 // ponytail: limites em memória por processo — mover p/ Redis se houver múltiplas réplicas
 const ANTISPAM_MAX_PER_MIN = Number(process.env.ANTISPAM_MAX_PER_MIN || 10)
+const ANTISPAM_MAX_PER_HOUR = Number(process.env.ANTISPAM_MAX_PER_HOUR || 30)
 const ANTISPAM_MUTE_MS = Number(process.env.ANTISPAM_MUTE_MINUTES || 30) * 60_000
+const HOUR_MS = 60 * 60_000
 const antispamHits = new Map<string, number[]>()
 const antispamMutedUntil = new Map<string, number>()
 
@@ -82,15 +85,16 @@ export function isSpamming(senderPhone: string, now = Date.now()): boolean {
     antispamMutedUntil.delete(senderPhone)
   }
 
-  const hits = (antispamHits.get(senderPhone) ?? []).filter((t) => now - t < 60_000)
+  const hits = (antispamHits.get(senderPhone) ?? []).filter((t) => now - t < HOUR_MS)
   hits.push(now)
   antispamHits.set(senderPhone, hits)
 
-  if (hits.length > ANTISPAM_MAX_PER_MIN) {
+  const lastMinute = hits.filter((t) => now - t < 60_000).length
+  if (lastMinute > ANTISPAM_MAX_PER_MIN || hits.length > ANTISPAM_MAX_PER_HOUR) {
     antispamMutedUntil.set(senderPhone, now + ANTISPAM_MUTE_MS)
     antispamHits.delete(senderPhone)
     logger.warn(
-      { senderPhone, hitsLastMinute: hits.length, muteMinutes: ANTISPAM_MUTE_MS / 60_000 },
+      { senderPhone, hitsLastMinute: lastMinute, hitsLastHour: hits.length, muteMinutes: ANTISPAM_MUTE_MS / 60_000 },
       'Anti-spam: remetente silenciado temporariamente',
     )
     return true
