@@ -55,11 +55,48 @@ setInterval(() => {
   for (const [id, ts] of processedIds) {
     if (now - ts > DEDUP_TTL_MS) processedIds.delete(id)
   }
+  for (const [phone, until] of antispamMutedUntil) {
+    if (now >= until) antispamMutedUntil.delete(phone)
+  }
+  for (const [phone, hits] of antispamHits) {
+    if (hits.every((t) => now - t >= 60_000)) antispamHits.delete(phone)
+  }
 }, 30 * 60 * 1000)
 
 // Debouncing maps
 const messageBuffers = new Map<string, string[]>()
 const messageTimers = new Map<string, Timer>()
+
+// Anti-spam: janela deslizante de 60s por remetente; excedeu → mute temporário.
+// ponytail: limites em memória por processo — mover p/ Redis se houver múltiplas réplicas
+const ANTISPAM_MAX_PER_MIN = Number(process.env.ANTISPAM_MAX_PER_MIN || 10)
+const ANTISPAM_MUTE_MS = Number(process.env.ANTISPAM_MUTE_MINUTES || 30) * 60_000
+const antispamHits = new Map<string, number[]>()
+const antispamMutedUntil = new Map<string, number>()
+
+/** Retorna true se o remetente deve ser bloqueado (spam). Exportada para teste. */
+export function isSpamming(senderPhone: string, now = Date.now()): boolean {
+  const muted = antispamMutedUntil.get(senderPhone)
+  if (muted !== undefined) {
+    if (now < muted) return true
+    antispamMutedUntil.delete(senderPhone)
+  }
+
+  const hits = (antispamHits.get(senderPhone) ?? []).filter((t) => now - t < 60_000)
+  hits.push(now)
+  antispamHits.set(senderPhone, hits)
+
+  if (hits.length > ANTISPAM_MAX_PER_MIN) {
+    antispamMutedUntil.set(senderPhone, now + ANTISPAM_MUTE_MS)
+    antispamHits.delete(senderPhone)
+    logger.warn(
+      { senderPhone, hitsLastMinute: hits.length, muteMinutes: ANTISPAM_MUTE_MS / 60_000 },
+      'Anti-spam: remetente silenciado temporariamente',
+    )
+    return true
+  }
+  return false
+}
 
 // Constant-time token verification to prevent timing attacks
 function validateToken(token: string, secret: string): boolean {
@@ -152,6 +189,11 @@ export function createServer(processMessage: ProcessMessage): Hono {
 
     const isGroup = payload.chat?.wa_isGroup ?? false
     const senderPhone = msg.sender_pn ?? (isGroup ? msg.sender : msg.chatid)
+
+    // Anti-spam: descarta antes de qualquer download de mídia ou chamada de IA
+    if (isSpamming(senderPhone)) {
+      return c.json({ ok: true, reason: 'rate-limited' })
+    }
 
     // 3. Media Download (Audio/Image)
     const isAudio = msg.type === 'media' && (msg.mediaType === 'ptt' || msg.messageType === 'AudioMessage')
