@@ -237,12 +237,19 @@ export class SgaClient {
   }
 
   async getFinancialInvoice(input: { cpf: string; plate: string }): Promise<{ invoices: SgaInvoice[] }> {
+    // A rota exige janela de vencimento (dd/mm/yyyy): 12 meses atrás → 60 dias à frente
+    // cobre boletos vencidos e a vencer do associado.
+    const toBr = (d: Date) =>
+      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+    const now = new Date()
     const data = await this.request<any>({
       method: 'POST',
       path: '/listar/boleto/periodo',
       body: {
         cpf_associado: normalizeCpf(input.cpf),
         codigo_situacao_boleto: config.sgaBoletoOpenStatusCode,
+        data_vencimento_inicial: toBr(new Date(now.getTime() - 365 * 24 * 3600_000)),
+        data_vencimento_final: toBr(new Date(now.getTime() + 60 * 24 * 3600_000)),
       },
     })
 
