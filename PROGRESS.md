@@ -9,13 +9,14 @@
 |---|---|---|---|---|
 | aprovauto-ai | Atendimento ao Associado (recepção) | aprovauto.vittalweb.com | 557781014643 | ✅ no ar (hoje com todas as tools; vira recepção pura no gate) |
 | aprovauto-financeiro | Gestão financeira | aprovauto-fin.vittalweb.com | 🔒 aguarda número | ✅ código+deploy+régua dry-run prontos |
-| aprovauto-comercial | Atendimento comercial | aprovauto-com.vittalweb.com | 🔒 aguarda número | ⬜ fase 1 do plano master |
-| aprovauto-sinistro | Atendimento de Sinistro | aprovauto-sin.vittalweb.com | 🔒 aguarda número | ⬜ fase 2 do plano master |
+| aprovauto-comercial | Atendimento comercial | aprovauto-com.vittalweb.com | 🔒 aguarda número | ✅ scaffold + testes + compose (falta Hub+deploy) |
+| aprovauto-sinistro | Atendimento de Sinistro | aprovauto-sin.vittalweb.com | 🔒 aguarda número | ✅ scaffold + testes + compose (falta Hub+deploy) |
 
-## Próximos passos (prontos para executar — aguardando "vai")
-1. Fase 1: scaffold `aprovauto-comercial` (allowlist SGA comercial + CRM, prompt de vendas, testes)
-2. Fase 2: scaffold `aprovauto-sinistro` (allowlist sinistro, prompt empático + docs, testes)
-3. Fase 3: 2 serviços novos no compose + Hub + deploy com placeholder (4 containers no ar)
+## Próximos passos
+1. ~~Fase 1: scaffold `aprovauto-comercial`~~ ✅ (allowlist SGA cotação + CRM mock, prompt de vendas, FAQ, 5 testes verdes)
+2. ~~Fase 2: scaffold `aprovauto-sinistro`~~ ✅ (allowlist sinistro, prompt empático + docs um a um + 48h, FAQ, 5 testes verdes)
+3. Fase 3 (local ✅ / remoto ⬜): serviços `aprovauto-comercial`/`aprovauto-sinistro` no compose com placeholders COM_*/SIN_* — falta: push, registrar os 2 agentes no Hub, redeploy Dokploy, `/health` 200 nos 2 hosts
+4. Fase 4: prompt de direcionamento na recepção (quando os números existirem) · gate 4.2 explícito
 - Em paralelo, quando chegar qualquer número novo: ativação em ~5 min (tokens + webhook) — fase 5
 
 ## Detalhe do financeiro (concluído nesta sprint)

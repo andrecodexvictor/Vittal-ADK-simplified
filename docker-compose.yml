@@ -82,6 +82,98 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  aprovauto-comercial:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aprovauto-ai:latest
+    pull_policy: build
+    container_name: aprovauto-comercial
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NODE_ENV: production
+      AGENT_SLUG: aprovauto-comercial
+      AGENT_CHANNEL: whatsapp
+      OUTBOUND_SOURCE: aprovauto-comercial
+      # Instância UAZAPI do número comercial — COM_* virão do env do Dokploy
+      # quando o número existir; placeholders mantêm o serviço no ar até lá.
+      WEBHOOK_SECRET: ${COM_WEBHOOK_SECRET:-placeholder-com-webhook}
+      UAZAPI_TOKEN: ${COM_UAZAPI_TOKEN:-placeholder-com-token}
+      HUB_AGENT_KEY: ${COM_HUB_AGENT_KEY:-placeholder-com-hub}
+      # CRM mock até a doc real (Lucas)
+      CRM_MOCK: "true"
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.aprovauto-com-web.entrypoints=web
+      - traefik.http.routers.aprovauto-com-web.rule=Host(`aprovauto-com.vittalweb.com`)
+      - traefik.http.routers.aprovauto-com-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.aprovauto-com-web.service=aprovauto-com-svc
+      - traefik.http.routers.aprovauto-com-websecure.entrypoints=websecure
+      - traefik.http.routers.aprovauto-com-websecure.rule=Host(`aprovauto-com.vittalweb.com`)
+      - traefik.http.routers.aprovauto-com-websecure.tls.certresolver=letsencrypt
+      - traefik.http.routers.aprovauto-com-websecure.service=aprovauto-com-svc
+      - traefik.http.services.aprovauto-com-svc.loadbalancer.server.port=3000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  aprovauto-sinistro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aprovauto-ai:latest
+    pull_policy: build
+    container_name: aprovauto-sinistro
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NODE_ENV: production
+      AGENT_SLUG: aprovauto-sinistro
+      AGENT_CHANNEL: whatsapp
+      OUTBOUND_SOURCE: aprovauto-sinistro
+      # Instância UAZAPI do número de sinistro — SIN_* virão do env do Dokploy
+      # quando o número existir; placeholders mantêm o serviço no ar até lá.
+      WEBHOOK_SECRET: ${SIN_WEBHOOK_SECRET:-placeholder-sin-webhook}
+      UAZAPI_TOKEN: ${SIN_UAZAPI_TOKEN:-placeholder-sin-token}
+      HUB_AGENT_KEY: ${SIN_HUB_AGENT_KEY:-placeholder-sin-hub}
+      # Recebe fotos de CNH/CRLV/avarias para upload no SGA
+      FEATURE_PROCESSAR_IMAGEM: "true"
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.aprovauto-sin-web.entrypoints=web
+      - traefik.http.routers.aprovauto-sin-web.rule=Host(`aprovauto-sin.vittalweb.com`)
+      - traefik.http.routers.aprovauto-sin-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.aprovauto-sin-web.service=aprovauto-sin-svc
+      - traefik.http.routers.aprovauto-sin-websecure.entrypoints=websecure
+      - traefik.http.routers.aprovauto-sin-websecure.rule=Host(`aprovauto-sin.vittalweb.com`)
+      - traefik.http.routers.aprovauto-sin-websecure.tls.certresolver=letsencrypt
+      - traefik.http.routers.aprovauto-sin-websecure.service=aprovauto-sin-svc
+      - traefik.http.services.aprovauto-sin-svc.loadbalancer.server.port=3000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   dokploy-network:
     external: true
