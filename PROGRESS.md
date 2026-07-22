@@ -1,9 +1,20 @@
-# PROGRESS — Agente Financeiro AprovaAuto
+# PROGRESS — AprovaAuto: um agente por número
 
-> Plano: `.context/plans/agente-financeiro-aprovauto.md` · Workflow PREVC: fase **V** (autônomo)
-> ClickUp: [Gestão financeira](https://app.clickup.com/t/86aj5yfzj) · Última atualização: 2026-07-22
+> Planos: `.context/plans/agentes-por-numero.md` (master) + `agente-financeiro-aprovauto.md` (padrão) · PREVC: fase **V**
+> ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-22
 
-## Objetivo
+## Visão
+
+| Agente | Frente (ClickUp) | Host | Número | Status |
+|---|---|---|---|---|
+| aprovauto-ai | Atendimento ao Associado (recepção) | aprovauto.vittalweb.com | 557781014643 | ✅ no ar (hoje com todas as tools; vira recepção pura no gate) |
+| aprovauto-financeiro | Gestão financeira | aprovauto-fin.vittalweb.com | 🔒 aguarda número | ✅ código+deploy+régua dry-run prontos |
+| aprovauto-comercial | Atendimento comercial | aprovauto-com.vittalweb.com | 🔒 aguarda número | ⬜ fase 1 do plano master |
+| aprovauto-sinistro | Atendimento de Sinistro | aprovauto-sin.vittalweb.com | 🔒 aguarda número | ⬜ fase 2 do plano master |
+
+## Detalhe do financeiro (concluído nesta sprint)
+
+### Objetivo
 Separar o agente único em dois: **aprovauto-financeiro** (2ª via LGPD, boletos, régua ativa, renegociação→handoff, número próprio) e **aprovauto-ai** (comercial/sinistro/FAQ, direciona financeiro).
 
 ## Fases
