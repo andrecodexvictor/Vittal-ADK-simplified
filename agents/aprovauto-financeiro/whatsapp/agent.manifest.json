@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "name": "AprovaAuto Financeiro",
+  "slug": "aprovauto-financeiro",
+  "level": "transactional",
+  "capabilities": [
+    "faq",
+    "rag",
+    "handoff"
+  ],
+  "plugins": [
+    {
+      "id": "builtin.handoff",
+      "config": {},
+      "requiredEnv": [
+        "HANDOFF_ATTENDANTS"
+      ]
+    },
+    {
+      "id": "custom.sga",
+      "config": {
+        "contract": "spec/sga.openapi.json",
+        "auth": "bearer",
+        "tools": [
+          "tool_sga_get_financial_invoice"
+        ]
+      },
+      "requiredEnv": [
+        "SGA_BASE_URL",
+        "SGA_API_TOKEN"
+      ]
+    }
+  ],
+  "publisher": {
+    "transport": "rabbitmq",
+    "envelope": "uazapi",
+    "source": "aprovauto-financeiro",
+    "requiredEnv": []
+  },
+  "prompts": {
+    "main": "prompts/system.md"
+  },
+  "knowledge": {
+    "path": "knowledge"
+  },
+  "notes": [
+    "Agente FINANCEIRO dedicado — só 2ª via/boletos (config.tools restringe as tools SGA).",
+    "Sinistro/cotação/FAQ geral: direcionar ao número principal (aprovauto-ai).",
+    "Régua ativa: scripts/billing-runner.ts --agent aprovauto-financeiro (schedule Dokploy)."
+  ]
+}

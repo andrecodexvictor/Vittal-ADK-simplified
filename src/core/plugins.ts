@@ -618,7 +618,7 @@ export function getActiveTools(manifest: AgentManifest): Tool[] {
   }
 
   if (manifest.slug === 'aprovauto-ai' || manifest.plugins.some((p) => p.id === 'custom.sga')) {
-    tools.push(
+    const sgaTools = [
       sgaSearchVehicleTool,
       sgaSimulateQuoteTool,
       sgaGetFinancialInvoiceTool,
@@ -626,7 +626,11 @@ export function getActiveTools(manifest: AgentManifest): Tool[] {
       sgaUploadClaimDocumentTool,
       sgaGetClaimStatusTool,
       sgaListProductsTool,
-    )
+    ]
+    // Allowlist opcional no plugin (config.tools) — agentes especializados (ex.: financeiro)
+    // expõem só um subconjunto; ausente = todas (retrocompatível).
+    const allow = manifest.plugins.find((p) => p.id === 'custom.sga')?.config?.tools as string[] | undefined
+    tools.push(...(Array.isArray(allow) && allow.length > 0 ? sgaTools.filter((t) => allow.includes(t.name)) : sgaTools))
   }
 
   // CRM tools — enabled by the custom.crm plugin (lead qualification, recovery, logging)

@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-03T18:36:46.897Z",
+  "source": "bootstrap",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [],
+    "buildTools": [
+      "docker",
+      "docker-compose"
+    ],
+    "testFrameworks": [],
+    "packageManager": "bun"
+  },
+  "sensors": [
+    {
+      "id": "test",
+      "name": "Test",
+      "description": "Run package test script",
+      "severity": "critical",
+      "command": "bun test agents/aprovauto-ai/whatsapp/tests agents/aprovauto-financeiro/whatsapp/tests",
+      "script": "test"
+    },
+    {
+      "id": "lint",
+      "name": "Lint",
+      "description": "Run package lint script",
+      "severity": "warning",
+      "command": "bun run lint",
+      "script": "lint"
+    }
+  ]
+}
