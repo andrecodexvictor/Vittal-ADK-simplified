@@ -1,6 +1,6 @@
 # PROGRESS — AprovaAuto: um agente por número
 
-> Planos: `.context/plans/agentes-por-numero.md` (master) + `agente-financeiro-aprovauto.md` (padrão) · PREVC: fase **V**
+> **Plano completo (commitado):** [`docs/PLANO-AGENTES-POR-NUMERO.md`](docs/PLANO-AGENTES-POR-NUMERO.md) · PREVC: fase **V**
 > ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-22
 
 ## Visão
@@ -11,6 +11,12 @@
 | aprovauto-financeiro | Gestão financeira | aprovauto-fin.vittalweb.com | 🔒 aguarda número | ✅ código+deploy+régua dry-run prontos |
 | aprovauto-comercial | Atendimento comercial | aprovauto-com.vittalweb.com | 🔒 aguarda número | ⬜ fase 1 do plano master |
 | aprovauto-sinistro | Atendimento de Sinistro | aprovauto-sin.vittalweb.com | 🔒 aguarda número | ⬜ fase 2 do plano master |
+
+## Próximos passos (prontos para executar — aguardando "vai")
+1. Fase 1: scaffold `aprovauto-comercial` (allowlist SGA comercial + CRM, prompt de vendas, testes)
+2. Fase 2: scaffold `aprovauto-sinistro` (allowlist sinistro, prompt empático + docs, testes)
+3. Fase 3: 2 serviços novos no compose + Hub + deploy com placeholder (4 containers no ar)
+- Em paralelo, quando chegar qualquer número novo: ativação em ~5 min (tokens + webhook) — fase 5
 
 ## Detalhe do financeiro (concluído nesta sprint)
 
