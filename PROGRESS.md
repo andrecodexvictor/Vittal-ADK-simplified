@@ -26,7 +26,7 @@ Cada repo = core ADK (`src/`) + `agents/<slug>/` + `docker-compose.yml` próprio
 ## Próximos passos
 1. ~~Fase 1: scaffold `aprovauto-comercial`~~ ✅ (allowlist SGA cotação + CRM mock, prompt de vendas, FAQ, 5 testes verdes)
 2. ~~Fase 2: scaffold `aprovauto-sinistro`~~ ✅ (allowlist sinistro, prompt empático + docs um a um + 48h, FAQ, 5 testes verdes)
-3. Fase 3 (local ✅ / remoto ⬜): **uma instância por agente** — compose próprio por agente (`docker-compose.<agente>.yml`; root = maestro `aprovauto-ai`), deploy individual. Falta: push, criar os apps Dokploy `aprovauto-financeiro`/`aprovauto-comercial`/`aprovauto-sinistro` apontando para os respectivos arquivos (⚠️ criar o do financeiro ANTES de redeployar o app atual, que perdeu o serviço financeiro do root), registrar comercial+sinistro no Hub, `/health` 200 nos hosts
+3. ~~Fase 3~~ ✅ **concluída em 2026-07-23**: 4 apps Dokploy no projeto `aprovauto`, um por repo — maestro `1AYQiHs3QLPwX4J8f5gCG`, financeiro `KGMslLjLpJtzG3wOpRPtg`, comercial `ClmZj-117noeiFcdhtLWT`, sinistro `PMXJk_Bp4dKAc7JlVGElk`. **4 containers no ar com `/health` 200** (aprovauto/aprovauto-fin/aprovauto-com/aprovauto-sin.vittalweb.com). Hub: comercial `sk-aprovauto-comercial-b7a3…` e sinistro `sk-aprovauto-sinistro-402d…` registrados. Schedules (dry-run, BRT): régua 9h (migrada p/ app financeiro, `Va13c4ZDoaFqHh5UM1GU8`), recuperação 10h (`YTM1JUL0vmTJc4j0nYECX`), follow-up 8h/14h/20h (`J89wzZzy6_9XNSaD8EarO`)
 4. Fase 4: prompt de direcionamento na recepção (quando os números existirem) · gate 4.2 explícito
 - Em paralelo, quando chegar qualquer número novo: ativação em ~5 min (tokens + webhook) — fase 5
 
