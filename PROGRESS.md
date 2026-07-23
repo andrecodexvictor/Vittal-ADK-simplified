@@ -64,4 +64,6 @@ Separar o agente único em dois: **aprovauto-financeiro** (2ª via LGPD, boletos
 7. `SGA_TIMEOUT_MS=60000` no financeiro (varredura paginada da régua passa de 10s).
 
 ## Log
+- 2026-07-23: **Entregáveis ClickUp por instância**: comercial ganhou `recovery-runner` (recuperação de oportunidades, CRM mock `/leads/open`, dry-run E2E ok — `5a06ccd`) e o **fluxo de negociação do CRM v1** (BPMN do cliente → `spec/CRM-FLOW.md`; lead com `vehicleCategory`/`associacao`/`vehicleValue`; caminhão→handoff; TOP >R$80mil; ativação 48h — `938d6ad`); sinistro ganhou `followup-runner` (pendências documentais via metadados do Hub, `docsReceived`/`pendingDocs` nas tools — `3c4f49c`). Ressalvas do cliente: caminhões fora da v1; pagamento da adesão difere entre Aprovauto/Conexão (em mudança — não prometer forma de pagamento).
+- 2026-07-23: Split em 4 repos (VittalWeb) — ver tabela acima. Maestro enxuto (`6bc1a9b`).
 - 2026-07-22: Plano+workflow PREVC (LARGE, autônomo), skills `aprovauto-agent-ops`/`aprovauto-cobranca`. Fases 2, 4 e 5-parcial concluídas e verificadas em produção. Commit `332b829`.
