@@ -1,7 +1,18 @@
 # PROGRESS — AprovaAuto: um agente por número
 
 > **Plano completo (commitado):** [`docs/PLANO-AGENTES-POR-NUMERO.md`](docs/PLANO-AGENTES-POR-NUMERO.md) · PREVC: fase **V**
-> ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-22
+> ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-23
+
+## Repos por instância (versionamento a partir de 2026-07-23)
+
+| Instância | Repo GitHub | Working copy local |
+|---|---|---|
+| maestro (aprovauto-ai) | [VittalWeb/Aprovauto-ai](https://github.com/VittalWeb/Aprovauto-ai) | este repo (`Vittal-ADK-simplified`) |
+| aprovauto-financeiro | [VittalWeb/Aprovauto-Financeiro-ai](https://github.com/VittalWeb/Aprovauto-Financeiro-ai) | `Desktop/Aprovauto-Financeiro-ai` |
+| aprovauto-comercial | [VittalWeb/Aprovauto-comercial-ai](https://github.com/VittalWeb/Aprovauto-comercial-ai) | `Desktop/Aprovauto-comercial-ai` |
+| aprovauto-sinistro | [VittalWeb/Aprovauto-sinistro-ai](https://github.com/VittalWeb/Aprovauto-sinistro-ai) | `Desktop/Aprovauto-sinistro-ai` |
+
+Cada repo = core ADK (`src/`) + `agents/<slug>/` + `docker-compose.yml` próprio → app Dokploy próprio, commit/deploy individuais. Evolução do core: aplicar no maestro e replicar nos repos das instâncias.
 
 ## Visão
 
