@@ -15,7 +15,7 @@
 
 ## 2. Decisões de arquitetura
 
-1. **Mesmo repo, mesma imagem Docker** — um serviço por agente no `docker-compose.yml`; `AGENT_SLUG` + prefixos de env (`FIN_`/`COM_`/`SIN_`) distinguem cada um.
+1. **Mesmo repo, uma instância por agente** *(revisado em 2026-07-23 para evitar conflitos de contexto)* — cada agente tem seu próprio compose (`docker-compose.<agente>.yml`, root = maestro `aprovauto-ai`), virando um app Dokploy próprio com imagem própria, commitado e deployado **individualmente**; `AGENT_SLUG` + prefixos de env (`FIN_`/`COM_`/`SIN_`) distinguem cada um. Os agentes se relacionam com o maestro pelo backbone comum: RabbitMQ (`vittal.messages`) + Vittal Hub.
 2. **Allowlist de ferramentas por manifest** (`config.tools` no plugin `custom.sga` — mecanismo já no core): cada número só executa o que é da sua frente. CRM só existe no comercial.
 3. **Transição sem quebra:** a recepção (`aprovauto-ai`) mantém TODAS as ferramentas até os 3 números novos existirem e serem validados. Cortar as tools transacionais da recepção é um **gate explícito** (fase 4.2) — nunca automático.
 4. **Memória separada por agente no Vittal Hub** (uma `api_key`/linha em `ai_agents` por agente) — conversas não se misturam entre frentes.

@@ -1,0 +1,51 @@
+# Instância APROVAUTO-FINANCEIRO — deploy individual (app Dokploy próprio apontando para este arquivo)
+# Comunicação com o maestro (aprovauto-ai): RabbitMQ (vittal.messages) + Vittal Hub.
+services:
+  aprovauto-financeiro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aprovauto-financeiro:latest
+    pull_policy: build
+    container_name: aprovauto-financeiro
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NODE_ENV: production
+      AGENT_SLUG: aprovauto-financeiro
+      AGENT_CHANNEL: whatsapp
+      OUTBOUND_SOURCE: aprovauto-financeiro
+      # Instância UAZAPI do número financeiro — FIN_* virão do env do Dokploy
+      # quando o número existir; placeholders mantêm o serviço no ar até lá.
+      WEBHOOK_SECRET: ${FIN_WEBHOOK_SECRET:-placeholder-fin-webhook}
+      UAZAPI_TOKEN: ${FIN_UAZAPI_TOKEN:-placeholder-fin-token}
+      HUB_AGENT_KEY: ${FIN_HUB_AGENT_KEY:-placeholder-fin-hub}
+      SGA_TIMEOUT_MS: "60000"
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.aprovauto-fin-web.entrypoints=web
+      - traefik.http.routers.aprovauto-fin-web.rule=Host(`aprovauto-fin.vittalweb.com`)
+      - traefik.http.routers.aprovauto-fin-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.aprovauto-fin-web.service=aprovauto-fin-svc
+      - traefik.http.routers.aprovauto-fin-websecure.entrypoints=websecure
+      - traefik.http.routers.aprovauto-fin-websecure.rule=Host(`aprovauto-fin.vittalweb.com`)
+      - traefik.http.routers.aprovauto-fin-websecure.tls.certresolver=letsencrypt
+      - traefik.http.routers.aprovauto-fin-websecure.service=aprovauto-fin-svc
+      - traefik.http.services.aprovauto-fin-svc.loadbalancer.server.port=3000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  dokploy-network:
+    external: true

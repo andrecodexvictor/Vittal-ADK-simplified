@@ -15,7 +15,7 @@
 ## Próximos passos
 1. ~~Fase 1: scaffold `aprovauto-comercial`~~ ✅ (allowlist SGA cotação + CRM mock, prompt de vendas, FAQ, 5 testes verdes)
 2. ~~Fase 2: scaffold `aprovauto-sinistro`~~ ✅ (allowlist sinistro, prompt empático + docs um a um + 48h, FAQ, 5 testes verdes)
-3. Fase 3 (local ✅ / remoto ⬜): serviços `aprovauto-comercial`/`aprovauto-sinistro` no compose com placeholders COM_*/SIN_* — falta: push, registrar os 2 agentes no Hub, redeploy Dokploy, `/health` 200 nos 2 hosts
+3. Fase 3 (local ✅ / remoto ⬜): **uma instância por agente** — compose próprio por agente (`docker-compose.<agente>.yml`; root = maestro `aprovauto-ai`), deploy individual. Falta: push, criar os apps Dokploy `aprovauto-financeiro`/`aprovauto-comercial`/`aprovauto-sinistro` apontando para os respectivos arquivos (⚠️ criar o do financeiro ANTES de redeployar o app atual, que perdeu o serviço financeiro do root), registrar comercial+sinistro no Hub, `/health` 200 nos hosts
 4. Fase 4: prompt de direcionamento na recepção (quando os números existirem) · gate 4.2 explícito
 - Em paralelo, quando chegar qualquer número novo: ativação em ~5 min (tokens + webhook) — fase 5
 
@@ -44,7 +44,7 @@ Separar o agente único em dois: **aprovauto-financeiro** (2ª via LGPD, boletos
 - [ ] Teste 2ª via com **CPF+placa reais** de associado.
 
 ## Decisões
-1. Mesmo repo/imagem Docker; 2 serviços no compose (`AGENT_SLUG` distingue); FIN_* com placeholder até o número existir.
+1. Mesmo repo; **uma instância por agente** (2026-07-23): compose próprio (`docker-compose.<agente>.yml`) + app Dokploy + imagem próprios, deploy individual; `AGENT_SLUG` distingue; FIN_*/COM_*/SIN_* com placeholder até os números existirem. Comunicação inter-agentes: RabbitMQ (`vittal.messages`) + Vittal Hub, maestro = aprovauto-ai.
 2. Financeiro é dono da régua: billing-runner `--agent aprovauto-financeiro` (schedule roda no container dele).
 3. **Allowlist de tools** (`config.tools` no plugin custom.sga): o número de cobrança só expõe `tool_sga_get_financial_invoice` + `human_handoff` — não pode abrir sinistro/cotação.
 4. Pix não é prometido (API Hinova não tem Pix nativo) — só se vier na fatura.
