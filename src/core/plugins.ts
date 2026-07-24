@@ -367,9 +367,12 @@ const sgaGetFinancialInvoiceTool: Tool = {
       const cpf = normalizeCpf(input.cpf)
       const plate = normalizePlate(input.plate)
       const result = await sgaClient.getFinancialInvoice({ cpf, plate })
-      const hasMismatch = result.invoices.some((invoice) => invoice.contractPlate && invoice.contractPlate !== plate)
+      // LGPD: só expõe faturas comprovadamente ligadas à placa informada. Boleto sem
+      // placa na resposta é inverificável → handoff, nunca exposição. Associado com
+      // mais de um veículo só vê as faturas da placa que validou.
+      const matching = result.invoices.filter((invoice) => invoice.contractPlate === plate)
 
-      if (hasMismatch) {
+      if (result.invoices.length > 0 && matching.length === 0) {
         const services = ctx.services
         if (services && config.featureAcionarAtendente) {
           await services.repository.addLog(ctx.executionId, {
@@ -392,7 +395,7 @@ const sgaGetFinancialInvoiceTool: Tool = {
       await mergeAprovautoState(ctx, { financialValidation: { cpfLast4: cpf.slice(-4), plate, authorized: true } })
       return {
         authorized: true,
-        invoices: result.invoices,
+        invoices: matching,
       }
     }),
 }

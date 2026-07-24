@@ -60,6 +60,28 @@ export function classify(dueDate: Date, today: Date, opts: ReguaOptions): Stage 
   return null
 }
 
+// ponytail: intervalo fixo de reenvio do estágio "vencido"; vira env se a homologação pedir.
+export const VENCIDO_REPEAT_DAYS = 7
+
+/**
+ * Cadência anti-spam da régua: cada boleto recebe NO MÁXIMO 1 mensagem por
+ * estágio (preventivo/vencido_recente/vencido); só o estágio "vencido" repete,
+ * a cada VENCIDO_REPEAT_DAYS. `lastSentIso` = yyyy-mm-dd do último envio
+ * daquele boleto+estágio (undefined = nunca enviado).
+ */
+export function shouldRemind(
+  lastSentIso: string | undefined,
+  stage: Stage,
+  today: Date,
+  repeatDays = VENCIDO_REPEAT_DAYS,
+): boolean {
+  if (!lastSentIso) return true
+  if (stage !== 'vencido') return false
+  const last = parseDue(lastSentIso)
+  if (!last) return true // ledger corrompido → melhor lembrar do que silenciar
+  return daysBetween(last, today) >= repeatDays
+}
+
 /** Monta a mensagem de tom suave de acordo com o estágio. */
 export function buildMessage(item: SgaBoletoListItem, stage: Stage): string {
   const nome = item.associadoName?.split(' ')[0] ?? 'tudo bem'

@@ -558,8 +558,10 @@ function mapVehicle(data: any, fallbackPlate?: string): SgaVehicle {
 }
 
 function mapInvoice(invoice: any, wantedPlate?: string): SgaInvoice {
+  // A placa pode vir no boleto (placa) ou no array veiculos[] — considerar ambas.
   const veiculos: any[] = Array.isArray(invoice.veiculos) ? invoice.veiculos : []
   const plates = veiculos.map((v) => (v.placa ? normalizePlate(String(v.placa)) : '')).filter(Boolean)
+  if (invoice.placa) plates.push(normalizePlate(String(invoice.placa)))
   const contractPlate = wantedPlate && plates.includes(wantedPlate) ? wantedPlate : plates[0]
 
   return {

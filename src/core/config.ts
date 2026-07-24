@@ -62,6 +62,9 @@ const configSchema = z.object({
   billingPageSize: z.coerce.number().default(3000),
   billingDryRun: z.preprocess((val) => val !== 'false', z.boolean().default(true)),
   billingReminderGroup: z.string().default(''),
+  // Teto de envios reais por execução (proteção anti-ban do número WhatsApp;
+  // excedente fica para a próxima execução — o ledger só marca o que enviou).
+  billingMaxSendsPerRun: z.coerce.number().default(100),
 
   // CRM (Optional) — mock-first until the real CRM API doc arrives
   crmMock: z.preprocess((val) => val === 'true', z.boolean().default(false)), // true = mock determinístico (sem CRM real)
@@ -154,6 +157,7 @@ function loadConfig() {
     billingPageSize: process.env.BILLING_PAGE_SIZE,
     billingDryRun: process.env.BILLING_DRY_RUN,
     billingReminderGroup: process.env.BILLING_REMINDER_GROUP,
+    billingMaxSendsPerRun: process.env.BILLING_MAX_SENDS_PER_RUN,
     crmMock: process.env.CRM_MOCK,
     crmApiId: process.env.CRM_API_ID,
     crmBearerToken: process.env.CRM_BEARER_TOKEN,
@@ -235,6 +239,7 @@ function loadConfig() {
         billingPageSize: 3000,
         billingDryRun: true,
         billingReminderGroup: '',
+        billingMaxSendsPerRun: 100,
         crmMock: true,
         crmApiId: '',
         crmBearerToken: '',

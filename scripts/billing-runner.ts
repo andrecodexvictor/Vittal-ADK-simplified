@@ -6,7 +6,9 @@
  * (pagamento processado manualmente, baixa no dia seguinte) e dispara lembretes
  * de tom suave via RabbitMQ — apenas para quem tem boleto em aberto.
  *
- * Idempotência: 1 lembrete por boleto+estágio por dia (cache em .billing-cache/).
+ * Idempotência/cadência: ledger persistente em .billing-cache/ledger.json —
+ * 1 lembrete por boleto+estágio (o estágio "vencido" repete a cada 7 dias,
+ * ver shouldRemind em ./lib/billing-rules).
  *
  * Uso:
  *   bun run scripts/billing-runner.ts --agent aprovauto-ai [--dry-run] [--live]
@@ -18,7 +20,7 @@ import { join } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import dotenv from 'dotenv'
 import type { SgaBoletoListItem } from '../src/services/SgaClient'
-import { addDays, buildMessage, classify, fmtDate, parseDue, type Stage } from './lib/billing-rules'
+import { addDays, buildMessage, classify, fmtDate, parseDue, shouldRemind, type Stage } from './lib/billing-rules'
 
 // ── 1. CLI + env bootstrap (mesmo padrão do run-agent) ──
 const argv: Record<string, string> = {}
@@ -53,19 +55,16 @@ const { RabbitMQPublisher } = await import('../src/services/RabbitMQ')
 // ── 2. Régua: parâmetros (lógica pura em ./lib/billing-rules) ──
 const PREVENTIVE_LEAD_DAYS = 3 // lembrete amigável N dias antes do vencimento
 
-// ── 3. Idempotência (1 lembrete por boleto+estágio por dia) ──
+// ── 3. Cadência (ledger boleto:estágio → yyyy-mm-dd do último envio) ──
 const cacheDir = join(process.cwd(), '.billing-cache')
-function cacheFile(today: Date): string {
-  return join(cacheDir, `sent-${today.toISOString().slice(0, 10)}.json`)
+const ledgerFile = join(cacheDir, 'ledger.json')
+function loadLedger(): Record<string, string> {
+  if (!existsSync(ledgerFile)) return {}
+  try { return JSON.parse(readFileSync(ledgerFile, 'utf8')) } catch { return {} }
 }
-function loadSent(today: Date): Set<string> {
-  const file = cacheFile(today)
-  if (!existsSync(file)) return new Set()
-  try { return new Set(JSON.parse(readFileSync(file, 'utf8'))) } catch { return new Set() }
-}
-function saveSent(today: Date, sent: Set<string>): void {
+function saveLedger(ledger: Record<string, string>): void {
   if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true })
-  writeFileSync(cacheFile(today), JSON.stringify([...sent]), 'utf8')
+  writeFileSync(ledgerFile, JSON.stringify(ledger), 'utf8')
 }
 
 // ── 5. Run ──
@@ -115,7 +114,8 @@ async function main() {
 
   log.info({ count: targets.length }, 'Boletos elegíveis para lembrete')
 
-  const sent = loadSent(today)
+  const ledger = loadLedger()
+  const todayIso = today.toISOString().slice(0, 10)
   let published = 0
   let skipped = 0
   const publisher = dryRun ? null : new RabbitMQPublisher(agentSlug, 'uazapi')
@@ -124,13 +124,19 @@ async function main() {
   try {
     for (const { item, stage } of targets) {
       const key = `${item.invoiceId}:${stage}`
-      if (sent.has(key)) { skipped++; continue }
+      if (!shouldRemind(ledger[key], stage, today)) { skipped++; continue }
       const phone = item.phone as string
       const message = buildMessage(item, stage)
 
       if (dryRun) {
         log.info({ phone: `***${phone.slice(-4)}`, stage, valor: item.amount, invoice: item.invoiceId }, '[DRY-RUN] lembrete não enviado')
       } else {
+        // Teto anti-ban: para de enviar e deixa o restante para a próxima execução
+        // (o ledger só marca o que foi enviado).
+        if (published >= config.billingMaxSendsPerRun) {
+          log.warn({ cap: config.billingMaxSendsPerRun }, 'Teto de envios por execução atingido — restante fica para a próxima execução')
+          break
+        }
         try {
           await publisher?.publish(phone, message, instanceName, false)
           published++
@@ -139,13 +145,13 @@ async function main() {
           continue
         }
       }
-      sent.add(key)
+      ledger[key] = todayIso
     }
   } finally {
     if (publisher) await publisher.close()
   }
 
-  if (!dryRun) saveSent(today, sent)
+  if (!dryRun) saveLedger(ledger)
 
   log.info({ eligible: targets.length, published, skipped, dryRun }, 'Régua concluída')
 }
