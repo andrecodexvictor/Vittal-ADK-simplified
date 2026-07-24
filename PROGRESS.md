@@ -1,7 +1,8 @@
 # PROGRESS — AprovaAuto: um agente por número
 
-> **Plano completo (commitado):** [`docs/PLANO-AGENTES-POR-NUMERO.md`](docs/PLANO-AGENTES-POR-NUMERO.md) · PREVC: fase **V**
-> ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-23
+> ⏰ **PRAZOS ACORDADOS (ler primeiro): [`docs/PRAZOS-ACORDADOS.md`](docs/PRAZOS-ACORDADOS.md)** — financeiro **06/08** · associado **10/08** · sinistro **13/08** · comercial+CRM **18/08**. Priorize sempre a data mais próxima com pendência.
+> **Plano completo (commitado):** [`docs/PLANO-AGENTES-POR-NUMERO.md`](docs/PLANO-AGENTES-POR-NUMERO.md) · PREVC: **concluído** (workflow agente-financeiro fechado em 23/07)
+> ClickUp: as 4 frentes em "fazendo" · Última atualização: 2026-07-24
 
 ## Repos por instância (versionamento a partir de 2026-07-23)
 
